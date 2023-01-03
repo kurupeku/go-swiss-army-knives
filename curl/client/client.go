@@ -22,7 +22,14 @@ func (c *HttpClient) Execute() error {
 		return err
 	}
 
-	return sendRequest(req)
+	request, response, err := sendRequest(req)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(request)
+	fmt.Println(response)
+	return nil
 }
 
 // TODO:URL, HTTPメソッド, リクエストヘッダ, リクエストボディが適切に設定された*http.Requestを返却
@@ -43,42 +50,45 @@ func (c *HttpClient) newRequest() (*http.Request, error) {
 }
 
 // TODO:HTTPリクエストを実行してレスポンスを取得
-// TODO:リクエストURL,HTTPメソッド,リクエストヘッダを標準出力
-// TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを標準出力
-func sendRequest(req *http.Request) error {
+// TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
+// TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
+func sendRequest(req *http.Request) (request string, response string, e error) {
 	client := new(http.Client)
 	res, err := client.Do(req)
 	if err != nil {
-		return nil
+		e = err
+		return
 	}
 	defer res.Body.Close()
 
-	outputRequest(req)
-	outputResponse(res)
+	request = createRequestText(req)
+	response = createResponseText(res)
 
-	return nil
+	return
 }
 
-func outputRequest(req *http.Request) {
-	fmt.Println("")
-	fmt.Println("===Request===")
-	fmt.Printf("[URL] %s\n", req.URL.String())
-	fmt.Printf("[Method] %s\n", req.Method)
-	fmt.Println("[Headers]")
+func createRequestText(req *http.Request) string {
+	var sb strings.Builder
+	sb.WriteString("\n===Request===\n")
+	sb.WriteString(fmt.Sprintf("[URL] %s\n", req.URL.String()))
+	sb.WriteString(fmt.Sprintf("[Method] %s\n", req.Method))
+	sb.WriteString("[Headers]\n")
 	for k, v := range req.Header {
-		fmt.Printf("  %s: %s\n", k, strings.Join(v, "; "))
+		sb.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, "; ")))
 	}
+	return sb.String()
 }
 
-func outputResponse(res *http.Response) {
-	fmt.Println("")
-	fmt.Println("===Response===")
-	fmt.Printf("[Status] %d\n", res.StatusCode)
-	fmt.Println("[Headers]")
+func createResponseText(res *http.Response) string {
+	var sb strings.Builder
+	sb.WriteString("\n===Response===\n")
+	sb.WriteString(fmt.Sprintf("[Status] %d\n", res.StatusCode))
+	sb.WriteString("[Headers]\n")
 	for k, v := range res.Header {
-		fmt.Printf("  %s: %s\n", k, strings.Join(v, "; "))
+		sb.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, "; ")))
 	}
-	fmt.Println("[Body]")
+	sb.WriteString("[Body]\n")
 	b, _ := io.ReadAll(res.Body)
-	fmt.Printf("%s\n", string(b))
+	sb.WriteString(fmt.Sprintf("%s\n", string(b)))
+	return sb.String()
 }

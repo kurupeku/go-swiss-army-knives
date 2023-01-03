@@ -7,11 +7,10 @@ import (
 
 func TestHttpClientBuilder_Validate(t *testing.T) {
 	type fields struct {
-		rawurl              string
-		method              string
-		data                []string
-		withQueryParamsFlag bool
-		customHeaders       []string
+		rawurl        string
+		method        string
+		data          string
+		customHeaders []string
 	}
 	tests := []struct {
 		name    string
@@ -23,11 +22,10 @@ func TestHttpClientBuilder_Validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &HttpClientBuilder{
-				rawurl:              tt.fields.rawurl,
-				method:              tt.fields.method,
-				data:                tt.fields.data,
-				withQueryParamsFlag: tt.fields.withQueryParamsFlag,
-				customHeaders:       tt.fields.customHeaders,
+				rawurl:        tt.fields.rawurl,
+				method:        tt.fields.method,
+				data:          tt.fields.data,
+				customHeaders: tt.fields.customHeaders,
 			}
 			if err := b.Validate(); (err != nil) != tt.wantErr {
 				t.Errorf("HttpClientBuilder.Validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -38,11 +36,10 @@ func TestHttpClientBuilder_Validate(t *testing.T) {
 
 func TestHttpClientBuilder_Build(t *testing.T) {
 	type fields struct {
-		rawurl              string
-		method              string
-		data                []string
-		withQueryParamsFlag bool
-		customHeaders       []string
+		rawurl        string
+		method        string
+		data          string
+		customHeaders []string
 	}
 	tests := []struct {
 		name    string
@@ -55,11 +52,10 @@ func TestHttpClientBuilder_Build(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			b := &HttpClientBuilder{
-				rawurl:              tt.fields.rawurl,
-				method:              tt.fields.method,
-				data:                tt.fields.data,
-				withQueryParamsFlag: tt.fields.withQueryParamsFlag,
-				customHeaders:       tt.fields.customHeaders,
+				rawurl:        tt.fields.rawurl,
+				method:        tt.fields.method,
+				data:          tt.fields.data,
+				customHeaders: tt.fields.customHeaders,
 			}
 			got, err := b.Build()
 			if (err != nil) != tt.wantErr {
