@@ -6,6 +6,7 @@ package cmd
 import (
 	"curl/client"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -37,7 +38,15 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 
-		return c.Execute()
+		req, res, err := c.Execute()
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(req)
+		fmt.Println(res)
+
+		return nil
 	},
 }
 

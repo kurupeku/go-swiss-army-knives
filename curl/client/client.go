@@ -16,20 +16,13 @@ type HttpClient struct {
 	requestHeader map[string]string
 }
 
-func (c *HttpClient) Execute() error {
+func (c *HttpClient) Execute() (string, string, error) {
 	req, err := c.newRequest()
 	if err != nil {
-		return err
+		return "", "", err
 	}
 
-	request, response, err := sendRequest(req)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(request)
-	fmt.Println(response)
-	return nil
+	return sendRequest(req)
 }
 
 // TODO:URL, HTTPメソッド, リクエストヘッダ, リクエストボディが適切に設定された*http.Requestを返却

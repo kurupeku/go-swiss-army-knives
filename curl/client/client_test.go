@@ -1,34 +1,89 @@
 package client
 
 import (
+	"errors"
 	"net/url"
 	"testing"
+
+	"github.com/jarcoal/httpmock"
 )
 
+const testURL = "https://example.com"
+
 func TestHttpClient_Execute(t *testing.T) {
-	type fields struct {
-		url           *url.URL
-		method        string
-		requestBody   *string
-		requestHeader map[string]string
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
+	url, err := url.ParseRequestURI(testURL)
+	if err != nil {
+		t.Fatal(err)
 	}
+	success := func() {
+		res, err := httpmock.NewJsonResponse(200, `{"status":"ok"}`)
+		if err != nil {
+			t.Fatal(err)
+		}
+		httpmock.RegisterResponder("GET", testURL, httpmock.ResponderFromResponse(res))
+	}
+	errf := func() {
+		httpmock.RegisterResponder("GET", testURL, httpmock.NewErrorResponder(errors.New("error!!")))
+	}
+
 	tests := []struct {
-		name    string
-		fields  fields
-		wantErr bool
+		name     string
+		mockFunc func()
+		want     string
+		want1    string
+		wantErr  bool
 	}{
-		// TODO: Add test cases.
+		{
+			name:     "success",
+			mockFunc: success,
+			want: `
+===Request===
+[URL] https://example.com
+[Method] GET
+[Headers]
+  Connection: keep-alive
+`,
+			want1: `
+===Response===
+[Status] 200
+[Headers]
+  Content-Type: application/json
+[Body]
+"{\"status\":\"ok\"}"
+`,
+			wantErr: false,
+		},
+		{
+			name:     "error",
+			mockFunc: errf,
+			want:     "",
+			want1:    "",
+			wantErr:  true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := &HttpClient{
-				url:           tt.fields.url,
-				method:        tt.fields.method,
-				requestBody:   tt.fields.requestBody,
-				requestHeader: tt.fields.requestHeader,
+			if tt.mockFunc != nil {
+				tt.mockFunc()
 			}
-			if err := c.Execute(); (err != nil) != tt.wantErr {
+			c := &HttpClient{
+				url:           url,
+				method:        "GET",
+				requestBody:   nil,
+				requestHeader: map[string]string{"Connection": "keep-alive"},
+			}
+			got, got1, err := c.Execute()
+			if (err != nil) != tt.wantErr {
 				t.Errorf("HttpClient.Execute() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("HttpClient.Execute() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("HttpClient.Execute() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
 	}

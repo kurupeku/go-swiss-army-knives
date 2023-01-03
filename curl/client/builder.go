@@ -68,11 +68,7 @@ func (b *HttpClientBuilder) validateRawURL() error {
 // - b.methodが許容されているHTTPメソッド(GET, POST, PUT, DELETE, PATCH)になっているか
 func (b *HttpClientBuilder) validateMethod() error {
 	switch b.method {
-	case http.MethodGet:
-	case http.MethodPost:
-	case http.MethodPut:
-	case http.MethodDelete:
-	case http.MethodPatch:
+	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
 		return nil
 	}
 	return fmt.Errorf("HTTP method '%s' is not supported", b.method)
