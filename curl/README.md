@@ -106,7 +106,7 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
 - 対応ファイル：`curl/client/builder.go`
 - 実装対象型：`HttpClientBuilder`
 - 実装内容：`func (b *HttpClientBuilder) Validate() error`内部から呼ばれている 4 つの妥当性チェックメソッドを実装する
-- 実装対象メソッド・実装内容
+- 実装対象メソッド・実装条件
   - `func (b *HttpClientBuilder) validateRawURL() error`
     - `b.rawurl`について以下のチェックを行い、違反している場合は`error`を返却
       - 正しい URL のフォーマットになっている
@@ -123,3 +123,11 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
   - `func (b *HttpClientBuilder) validateHeader() error`
     - `b.customHeaders`の全ての要素が以下の条件を満たすことを確認し、違反している場合は`error`を返却
       - `:`が 1 つだけ含まれており、`:`の前後が空ではない
+
+### 2 週目：HTTP 通信用クライアントを構築
+
+- 対応ファイル：`curl/client/builder.go`
+- 実装対象型：`HttpClientBuilder`
+- 実装内容：`func (b *HttpClientBuilder) Build() (*HttpClient, error)`で`*HttpClient`型のインスタンスを構築して返却する
+- 実装対象メソッド・実装条件
+  - `func (b *HttpClientBuilder) Build() (*HttpClient, error)`
