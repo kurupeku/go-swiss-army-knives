@@ -50,7 +50,7 @@ func (b *HttpClientBuilder) Validate() error {
 }
 
 // TODO: チェックをして問題があればerrorを返却
-// - b.urlのフォーマットがURLとして正しいかをチェック
+// - b.rawurlのフォーマットがURLとして正しいかをチェック
 // - プロトコルがhttp, httpsになっているかを確認する
 func (b *HttpClientBuilder) validateRawURL() error {
 	url, err := url.ParseRequestURI(b.rawurl)
@@ -92,17 +92,16 @@ func (b *HttpClientBuilder) validateData() error {
 
 // TODO:チェックをして問題があればerrorを返却
 // b.customHeadersのすべての要素が以下の条件を満たす
-// - 空文字ではない
 // - ':'が1つだけ含まれており、':'の前後が空ではない
 func (b *HttpClientBuilder) validateHeader() error {
 	for _, v := range b.customHeaders {
 		s := strings.TrimSpace(v)
-		if len(s) == 0 {
-			return errors.New("headers include empty string")
-		}
 		kv := strings.Split(s, ":")
 		if len(kv) != 2 {
-			return fmt.Errorf("invalid format header: %s", kv)
+			return fmt.Errorf("invalid format header: %s", s)
+		}
+		if len(kv[0]) == 0 || len(kv[1]) == 0 {
+			return fmt.Errorf("invalid format header: %s", s)
 		}
 	}
 	return nil

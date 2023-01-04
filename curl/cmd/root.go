@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"curl/client"
-	"errors"
 	"fmt"
 	"os"
 
@@ -17,16 +16,19 @@ var customHeaders = make([]string, 0)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "curl",
+	Use:   "curl [URL]",
 	Short: "curl is http/https client command.",
 	Long: `curl is http/https client command.
+- Args: URL
 - Available HTTP Methods: GET, POST, PUT, DELETE, PATCH
 - Available Content-Type: application/json(only for POST, PUT, PATCH)`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return errors.New("this command requires at least one argument")
+	Args: func(cmd *cobra.Command, args []string) error {
+		if err := cobra.ExactArgs(1)(cmd, args); err != nil {
+			return fmt.Errorf("%s: You must set only URL", err.Error())
 		}
-
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
 		builder := client.NewHttpClientBuilder(args[0], method, data, customHeaders)
 
 		if err := builder.Validate(); err != nil {
