@@ -4,12 +4,20 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"errors"
+	"logtransfer/input"
+	"logtransfer/output"
+	"logtransfer/storage"
 	"net/url"
 	"os"
+	"os/signal"
+	"time"
 
 	"github.com/spf13/cobra"
 )
+
+const errorFilePath = "error.log"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -25,12 +33,37 @@ e.g ) logtransfer https://sample.com`,
 			return errors.New("request path is required")
 		}
 
-		_, err := url.Parse(args[0])
+		u, err := url.Parse(args[0])
 		if err != nil {
 			return err
 		}
 
-		return nil
+		var (
+			ctx, stop     = signal.NotifyContext(context.Background(), os.Interrupt)
+			ln, out, errc = make(chan []byte, 1), make(chan []byte, 1), make(chan error, 1)
+			ef            *os.File
+		)
+		defer stop()
+
+		go input.Monitor(ctx, ln, errc, os.Stdout)
+		go storage.Listen(ctx, ln, errc)
+		go storage.Load(ctx, out, errc, 5*time.Second)
+		go output.Forward(ctx, out, errc, u.String())
+
+		ef, err = os.Create(errorFilePath)
+		if err != nil {
+			return err
+		}
+		defer ef.Close()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case err := <-errc:
+				ef.WriteString(err.Error())
+			}
+		}
 	},
 }
 
