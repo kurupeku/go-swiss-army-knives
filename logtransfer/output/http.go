@@ -22,38 +22,22 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 				return
 			}
 
-			req := newRequest(url, b, errc)
-			res, err := http.DefaultClient.Do(req)
+			body := bytes.NewBuffer(b)
+			res, err := http.Post(url, contentType, body)
 			if err != nil {
 				errc <- err
 				continue
 			}
 
-			checkError(res, errc)
-		}
-	}
-}
-
-func newRequest(url string, body []byte, errc chan error) *http.Request {
-	buf := bytes.NewBuffer(body)
-	req, err := http.NewRequest(http.MethodPost, url, buf)
-	if err != nil {
-		errc <- err
-		return nil
-	}
-
-	req.Header.Add("Content-Type", contentType)
-	return req
-}
-
-func checkError(res *http.Response, errc chan error) {
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		b, err := io.ReadAll(res.Body)
-		if err != nil {
-			errc <- err
-		} else {
-			errc <- errors.New(string(b))
+			defer res.Body.Close()
+			if res.StatusCode != http.StatusOK {
+				b, err := io.ReadAll(res.Body)
+				if err != nil {
+					errc <- err
+				} else {
+					errc <- errors.New(string(b))
+				}
+			}
 		}
 	}
 }
