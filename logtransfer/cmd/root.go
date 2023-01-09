@@ -7,17 +7,17 @@ import (
 	"context"
 	"errors"
 	"logtransfer/input"
+	"logtransfer/logs"
 	"logtransfer/output"
 	"logtransfer/storage"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/signal"
 	"time"
 
 	"github.com/spf13/cobra"
 )
-
-const errorFilePath = "error.log"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -27,10 +27,10 @@ var rootCmd = &cobra.Command{
 The application consists of a distributed system
 with multi-threaded safe transfers.
 
-e.g ) logtransfer https://sample.com`,
+e.g ) logtransfer https://sample.com sample.sh`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 1 {
-			return errors.New("request path is required")
+		if len(args) < 2 {
+			return errors.New("request url and command are required")
 		}
 
 		u, err := url.Parse(args[0])
@@ -41,29 +41,23 @@ e.g ) logtransfer https://sample.com`,
 		var (
 			ctx, stop     = signal.NotifyContext(context.Background(), os.Interrupt)
 			ln, out, errc = make(chan []byte, 1), make(chan []byte, 1), make(chan error, 1)
-			ef            *os.File
 		)
 		defer stop()
 
-		go input.Monitor(ctx, ln, errc, os.Stdout)
-		go storage.Listen(ctx, ln, errc)
-		go storage.Load(ctx, out, errc, 5*time.Second)
-		go output.Forward(ctx, out, errc, u.String())
-
-		ef, err = os.Create(errorFilePath)
+		subCmd := exec.Command(args[1], args[2:]...)
+		stdout, err := subCmd.StdoutPipe()
 		if err != nil {
 			return err
 		}
-		defer ef.Close()
 
-		for {
-			select {
-			case <-ctx.Done():
-				return nil
-			case err := <-errc:
-				ef.WriteString(err.Error())
-			}
-		}
+		go input.Monitor(ctx, ln, errc, stdout)
+		go storage.Listen(ctx, ln, errc)
+		go storage.Load(ctx, out, errc, 5*time.Second)
+		go output.Forward(ctx, out, errc, u.String())
+		go logs.Error(ctx, errc)
+
+		subCmd.Run()
+		return nil
 	},
 }
 
@@ -85,5 +79,5 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
