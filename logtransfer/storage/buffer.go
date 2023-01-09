@@ -20,7 +20,7 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 			if !ok {
 				return
 			}
-			_, err := buf.Write(b)
+			_, err := buf.Write([]byte(string(b) + "\n"))
 			if err != nil {
 				errc <- err
 			}
