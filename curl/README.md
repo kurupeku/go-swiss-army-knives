@@ -97,40 +97,17 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
 - コマンド引数・フラグを受け取る部分は実装済み
 - 通信結果を出力する部分は実装済み
 - 未実装となっている以下の 3 つの処理を実装する
-  - [1 週目] コマンド引数・フラグの入力値の妥当性チェック
-  - [2 週目] HTTP 通信用クライアントを構築
-  - [3 週目] HTTP 通信を実行して通信結果のテキストを構築
-
-### 1 週目：コマンド引数・フラグの入力値の妥当性チェック
-
-- 対応ファイル：`curl/client/builder.go`
-- 実装対象型：`HttpClientBuilder`
-- 実装内容：`func (b *HttpClientBuilder) Validate() error`内部から呼ばれている 4 つの妥当性チェックメソッドを実装する
-- 実装対象メソッド・実装条件
-  - `func (b *HttpClientBuilder) validateRawURL() error`
-    - `b.rawurl`について以下のチェックを行い、違反している場合は`error`を返却
-      - 正しい URL のフォーマットになっている
-        - `net/url`パッケージの`ParseRequestURI`でエラーが起きなければ OK
-      - プロトコルが http または https になっている
-  - `func (b *HttpClientBuilder) validateMethod() error`
-    - `b.method`が許容されている HTTP メソッドに一致しなければ`error`を返却
-      - 未指定の場合のデフォルト値`GET`も既に設定された状態なので、`b.method`が空文字になっている場合もエラーにしてください
-  - `func (b *HttpClientBuilder) validateData() error`
-    - `b.data`について以下の状態と一致するかのチェックを行い、いずれにも該当しない場合は`error`を返却
-      - 値が設定されていない（空文字）
-      - 正しい JSON 形式の文字列になっている
-        - `encoding/json`パッケージを使うと正しい JSON 形式の文字列であることの確認が簡単になります
-  - `func (b *HttpClientBuilder) validateHeader() error`
-    - `b.customHeaders`の全ての要素が以下の条件を満たすことを確認し、違反している場合は`error`を返却
-      - `:`が 1 つだけ含まれており、`:`の前後が空ではない
+  - [1 週目] HTTP 通信用クライアントを構築
+  - [2 週目] HTTP 通信を実行
+  - [3 週目] HTTP 通信結果のテキストを構築
 
 ### 2 週目：HTTP 通信用クライアントを構築
 
-- 対応ファイル：`curl/client/builder.go`
-- 実装対象型：`HttpClientBuilder`
-- 実装内容：`func (b *HttpClientBuilder) Build() (*HttpClient, error)`で`*HttpClient`型のインスタンスを構築して返却する
+- 対応ファイル：`curl/client/client.go`
+- 実装対象型：`NewHttpClient`
+- 実装内容：`func NewHttpClient() (*HttpClient, error)`で`*HttpClient`型のインスタンスを構築して返却する
 - 実装対象メソッド・実装条件
-  - `func (b *HttpClientBuilder) Build() (*HttpClient, error)`
+  - `func NewHttpClient() (*HttpClient, error)`
     - URL は net/url パッケージの\*url.URL で構築する
     - b.customHeaders をリクエストヘッダとして設定
     - HTTP メソッドが GET,DELETE の場合
@@ -141,7 +118,7 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
       - b.data の値をそのままレスポンスボディに設定
         - その際、b.data が空であればエラー
 
-### 3 週目：HTTP 通信を実行してリクエストとレスポンスの内容を返却
+### 2, 3 週目：HTTP 通信を実行してリクエストとレスポンスの内容を返却
 
 - 対応ファイル：`curl/client/client/go`
 - 実装対象型：`HttpClient`

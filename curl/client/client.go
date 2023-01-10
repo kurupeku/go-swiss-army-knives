@@ -62,50 +62,40 @@ func NewHttpClient(
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
-	req, err := c.newRequest()
+	req, res, err := c.SendRequest()
 	if err != nil {
 		return "", "", err
 	}
+	defer res.Body.Close()
 
-	return sendRequest(req)
+	return CreateRequestText(req), CreateResponseText(res), nil
 }
 
-// TODO:URL, HTTPメソッド, リクエストヘッダ, リクエストボディが適切に設定された*http.Requestを返却
-func (c *HttpClient) newRequest() (*http.Request, error) {
+// TODO:URL, HTTPメソッド, リクエストヘッダ, リクエストボディが適切に設定された*http.Requestを生成
+// TODO:HTTPリクエストを実行後の*http.Request, *http.Responseを返却
+func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	var body io.Reader
 	if c.requestBody != nil {
 		body = bytes.NewBufferString(*c.requestBody)
 	}
 	req, err := http.NewRequest(c.method, c.url.String(), body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	for k, v := range c.requestHeader {
 		req.Header.Set(k, v)
 	}
 
-	return req, nil
-}
-
-// TODO:HTTPリクエストを実行してレスポンスを取得
-// TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
-// TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
-func sendRequest(req *http.Request) (request string, response string, e error) {
 	client := new(http.Client)
 	res, err := client.Do(req)
 	if err != nil {
-		e = err
-		return
+		return nil, nil, err
 	}
-	defer res.Body.Close()
-
-	request = createRequestText(req)
-	response = createResponseText(res)
-
-	return
+	return req, res, nil
 }
 
-func createRequestText(req *http.Request) string {
+// TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
+func CreateRequestText(req *http.Request) string {
 	var sb strings.Builder
 	sb.WriteString("\n===Request===\n")
 	sb.WriteString(fmt.Sprintf("[URL] %s\n", req.URL.String()))
@@ -117,7 +107,8 @@ func createRequestText(req *http.Request) string {
 	return sb.String()
 }
 
-func createResponseText(res *http.Response) string {
+// TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
+func CreateResponseText(res *http.Response) string {
 	var sb strings.Builder
 	sb.WriteString("\n===Response===\n")
 	sb.WriteString(fmt.Sprintf("[Status] %d\n", res.StatusCode))
