@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,50 @@ type HttpClient struct {
 	method        string
 	requestBody   *string
 	requestHeader map[string]string
+}
+
+// TODO:URLはnet/urlパッケージの*url.URLで構築する
+//
+// TODO:customHeadersをリクエストヘッダとして設定
+//
+// TODO:HTTPメソッドがGET,DELETEの場合
+// - リクエストボディは設定しない
+// - リクエストヘッダにContent-Typeが含まれている場合は削除
+//
+// TODO:HTTPメソッドがPOST,PUT,DELETEの場合
+// - リクエストヘッダのContent-Typeは"application/json"にする
+// - dataの値をそのままレスポンスボディに設定
+// - その際、dataが空であればエラー
+func NewHttpClient(
+	rawurl string,
+	method string,
+	data string,
+	customHeaders []string,
+) (*HttpClient, error) {
+	var requestBody *string
+	requestHeader := map[string]string{}
+	u, err := url.ParseRequestURI(rawurl)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range customHeaders {
+		kv := strings.Split(v, ":")
+		requestHeader[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
+	}
+
+	switch method {
+	case http.MethodGet, http.MethodDelete:
+		delete(requestHeader, "Content-Type")
+	case http.MethodPost, http.MethodPut, http.MethodPatch:
+		if len(data) == 0 {
+			return nil, errors.New("requires data json")
+		}
+		requestHeader["Content-Type"] = "application/json"
+		requestBody = &data
+	}
+
+	return &HttpClient{u, method, requestBody, requestHeader}, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
