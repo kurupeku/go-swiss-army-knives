@@ -104,10 +104,9 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
 ### 2 週目：HTTP 通信用クライアントを構築
 
 - 対応ファイル：`curl/client/client.go`
-- 実装対象型：`NewHttpClient`
-- 実装内容：`func NewHttpClient() (*HttpClient, error)`で`*HttpClient`型のインスタンスを構築して返却する
+- 実装内容：`(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`で HTTP 通信を実行し、`*http.Request`と`*http.Response`のインスタンスを返却する
 - 実装対象メソッド・実装条件
-  - `func NewHttpClient() (*HttpClient, error)`
+  - `(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`
     - URL は net/url パッケージの\*url.URL で構築する
     - b.customHeaders をリクエストヘッダとして設定
     - HTTP メソッドが GET,DELETE の場合
@@ -118,18 +117,19 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
       - b.data の値をそのままレスポンスボディに設定
         - その際、b.data が空であればエラー
 
-### 2, 3 週目：HTTP 通信を実行してリクエストとレスポンスの内容を返却
+### 2 週目：HTTP 通信を実行
 
 - 対応ファイル：`curl/client/client/go`
 - 実装対象型：`HttpClient`
-- 実装内容：`func (c *HttpClient) Execute() (string, string, error)`でリクエストを送信してリクエスト、レスポンスの内容を`string`で返却する
+- 実装内容：`(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`でリクエストを送信して`*http.Request`, `*http.Response`を返却する
 - 実装対象メソッド・実装条件
-  - `func (c *HttpClient) newRequest() (*http.Request, error)`
-    - URL, HTTP メソッド, リクエストヘッダ, リクエストボディが適切に設定された`*http.Request`を返却
-  - `func sendRequest(req *http.Request) (request string, response string, e error)`
+  - `(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`
+    - URL, HTTP メソッド, リクエストヘッダ, リクエストボディが適切に設定された`*http.Request`を構築
     - HTTP リクエストを実行してレスポンスを取得
-    - リクエスト URL,HTTP メソッド,リクエストヘッダを所定のフォーマットで返却
-    - レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
+    - `*http.Request`, `*http.Response`を返却
+
+### 3 週目：HTTP 通信結果のテキストを構築
+
 - リクエスト内容のフォーマット
   - 改行コードは`\n`
   - 最初に空行を 1 行入れる
