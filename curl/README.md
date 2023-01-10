@@ -131,3 +131,59 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
 - 実装内容：`func (b *HttpClientBuilder) Build() (*HttpClient, error)`で`*HttpClient`型のインスタンスを構築して返却する
 - 実装対象メソッド・実装条件
   - `func (b *HttpClientBuilder) Build() (*HttpClient, error)`
+    - URL は net/url パッケージの\*url.URL で構築する
+    - b.customHeaders をリクエストヘッダとして設定
+    - HTTP メソッドが GET,DELETE の場合
+      - リクエストボディは設定しない
+      - リクエストヘッダに Content-Type が含まれている場合は削除
+    - HTTP メソッドが POST,PUT,DELETE の場合
+      - リクエストヘッダの Content-Type は"application/json"にする
+      - b.data の値をそのままレスポンスボディに設定
+        - その際、b.data が空であればエラー
+
+### 3 週目：HTTP 通信を実行してリクエストとレスポンスの内容を返却
+
+- 対応ファイル：`curl/client/client/go`
+- 実装対象型：`HttpClient`
+- 実装内容：`func (c *HttpClient) Execute() (string, string, error)`でリクエストを送信してリクエスト、レスポンスの内容を`string`で返却する
+- 実装対象メソッド・実装条件
+  - `func (c *HttpClient) newRequest() (*http.Request, error)`
+    - URL, HTTP メソッド, リクエストヘッダ, リクエストボディが適切に設定された`*http.Request`を返却
+  - `func sendRequest(req *http.Request) (request string, response string, e error)`
+    - HTTP リクエストを実行してレスポンスを取得
+    - リクエスト URL,HTTP メソッド,リクエストヘッダを所定のフォーマットで返却
+    - レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
+- リクエスト内容のフォーマット
+  - 改行コードは`\n`
+  - 最初に空行を 1 行入れる
+  - 以下の形式で URL, Method, Headers を入れる
+    - Headers はスペース 2 つでインデントをつける
+    - Headers で表示するリクエストヘッダがなくても、`[Headers]`という行は必ず入れる
+
+```bash
+
+===Request===
+[URL] https://example.com
+[Method] GET
+[Headers]
+  Connection: keep-alive
+```
+
+- レスポンス内容のフォーマット
+  - 改行コードは`\n`
+  - 最初に空行を 1 行入れる
+  - 以下の形式で Status, Headers, Body を入れる
+    - Headers はスペース 2 つでインデントをつける
+    - Headers で表示するリクエストヘッダがなくても、`[Headers]`という行は必ず入れる
+  - Body はインデントなしで出力し、最後に改行を入れる
+    - レスポンスボディが空の場合は、空行を出力する
+
+```bash
+
+===Response===
+[Status] 200
+[Headers]
+  Content-Type: application/json
+[Body]
+"{\"status\":\"ok\"}"
+```
