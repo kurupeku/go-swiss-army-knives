@@ -31,7 +31,7 @@ var rootCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		builder := client.NewHttpClientBuilder(args[0], method, data, customHeaders)
 
-		if err := builder.Validate(); err != nil {
+		if err := client.ValidateFlags(args[0], method, data, customHeaders); err != nil {
 			return err
 		}
 

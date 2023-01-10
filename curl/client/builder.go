@@ -1,9 +1,7 @@
 package client
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -23,88 +21,6 @@ func NewHttpClientBuilder(
 	customHeaders []string,
 ) *HttpClientBuilder {
 	return &HttpClientBuilder{rawurl, method, data, customHeaders}
-}
-
-func (b *HttpClientBuilder) Validate() error {
-	//rawurlのフォーマットをチェック
-	if err := b.validateRawURL(); err != nil {
-		return err
-	}
-
-	//methodの整合性をチェック
-	if err := b.validateMethod(); err != nil {
-		return err
-	}
-
-	//dataのフォーマットをチェック
-	if err := b.validateData(); err != nil {
-		return err
-	}
-
-	//customHeadersのフォーマットをチェック
-	if err := b.validateHeader(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// TODO: チェックをして問題があればerrorを返却
-// - b.rawurlのフォーマットがURLとして正しいかをチェック
-// - プロトコルがhttp, httpsになっているかを確認する
-func (b *HttpClientBuilder) validateRawURL() error {
-	url, err := url.ParseRequestURI(b.rawurl)
-	if err != nil {
-		return err
-	}
-	if url.Scheme != "http" && url.Scheme != "https" {
-		return fmt.Errorf("url schema '%s' is not supported", url.Scheme)
-	}
-
-	return nil
-}
-
-// TODO: チェックをして問題があればerrorを返却
-// - b.methodが許容されているHTTPメソッド(GET, POST, PUT, DELETE, PATCH)になっているか
-func (b *HttpClientBuilder) validateMethod() error {
-	switch b.method {
-	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
-		return nil
-	}
-	return fmt.Errorf("HTTP method '%s' is not supported", b.method)
-}
-
-// TODO:チェックをして問題があればerrorを返却
-// b.dataが以下のいずれかの条件を満たす
-// - 空文字
-// - 正しいJSON形式の文字列
-func (b *HttpClientBuilder) validateData() error {
-	s := strings.TrimSpace(b.data)
-	if s == "" {
-		return nil
-	}
-	m := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(s), &m); err != nil {
-		return fmt.Errorf("json parse error: %s", err.Error())
-	}
-	return nil
-}
-
-// TODO:チェックをして問題があればerrorを返却
-// b.customHeadersのすべての要素が以下の条件を満たす
-// - ':'が1つだけ含まれており、':'の前後が空ではない
-func (b *HttpClientBuilder) validateHeader() error {
-	for _, v := range b.customHeaders {
-		s := strings.TrimSpace(v)
-		kv := strings.Split(s, ":")
-		if len(kv) != 2 {
-			return fmt.Errorf("invalid format header: %s", s)
-		}
-		if len(kv[0]) == 0 || len(kv[1]) == 0 {
-			return fmt.Errorf("invalid format header: %s", s)
-		}
-	}
-	return nil
 }
 
 // TODO:URLはnet/urlパッケージの*url.URLで構築する
