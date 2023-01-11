@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const testURL = "https://example.com"
+const testURL = "https://example.com?hoge=fuga&foo=var"
 
 func TestNewHttpClient(t *testing.T) {
 	type args struct {
@@ -196,7 +197,7 @@ func TestHttpClient_Execute(t *testing.T) {
 			mockFunc: success,
 			want: `
 ===Request===
-[URL] https://example.com
+[URL] https://example.com?hoge=fuga&foo=var
 [Method] GET
 [Headers]
   Connection: keep-alive
@@ -321,37 +322,104 @@ func TestHttpClient_SendRequest(t *testing.T) {
 }
 
 func TestCreateRequestText(t *testing.T) {
-	type args struct {
-		req *http.Request
-	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name    string
+		method  string
+		headers map[string]string
+		want    string
 	}{
-		// TODO: Add test cases.
+		{
+			name:   "with_header",
+			method: http.MethodPost,
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"Connection":   "keep-alive",
+			},
+			want: `
+===Request===
+[URL] https://example.com?hoge=fuga&foo=var
+[Method] POST
+[Headers]
+  Content-Type: application/json
+  Connection: keep-alive
+`,
+		},
+		{
+			name:    "without_header",
+			method:  http.MethodGet,
+			headers: nil,
+			want: `
+===Request===
+[URL] https://example.com?hoge=fuga&foo=var
+[Method] GET
+[Headers]
+`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, CreateRequestText(tt.args.req))
+			req, err := http.NewRequest(tt.method, testURL, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for k, v := range tt.headers {
+				req.Header.Set(k, v)
+			}
+			assert.Equal(t, tt.want, CreateRequestText(req))
 		})
 	}
 }
 
 func TestCreateResponseText(t *testing.T) {
-	type args struct {
-		res *http.Response
-	}
 	tests := []struct {
-		name string
-		args args
-		want string
+		name    string
+		headers map[string]string
+		body    string
+		want    string
 	}{
-		// TODO: Add test cases.
+		{
+			name: "with_header_and_body",
+			headers: map[string]string{
+				"Content-Type": "application/json",
+				"Server":       "Apache",
+			},
+			body: `"{\"status\":\"ok\"}"`,
+			want: `
+===Response===
+[Status] 200
+[Headers]
+  Content-Type: application/json
+  Server: Apache
+[Body]
+"{\"status\":\"ok\"}"
+`,
+		},
+		{
+			name:    "without_header_and_body",
+			headers: nil,
+			body:    "",
+			want: `
+===Response===
+[Status] 200
+[Headers]
+[Body]
+
+`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(t, tt.want, CreateResponseText(tt.args.res))
+			res := &http.Response{
+				Status:     "200 OK",
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewBufferString(tt.body)),
+				Header:     make(http.Header),
+			}
+			defer res.Body.Close()
+			for k, v := range tt.headers {
+				res.Header.Set(k, v)
+			}
+			assert.Equal(t, tt.want, CreateResponseText(res))
 		})
 	}
 }

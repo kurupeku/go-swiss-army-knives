@@ -101,35 +101,43 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
   - [2 週目] HTTP 通信を実行
   - [3 週目] HTTP 通信結果のテキストを構築
 
-### 2 週目：HTTP 通信用クライアントを構築
+### 1 週目：HTTP 通信用クライアントを構築
 
 - 対応ファイル：`curl/client/client.go`
-- 実装内容：`(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`で HTTP 通信を実行し、`*http.Request`と`*http.Response`のインスタンスを返却する
+- 実装内容：`func NewHttpClient(rawurl string, method string, data string, customHeaders []string) (*HttpClient, error)`で `*HttpClient`のインスタンス生成して返却
 - 実装対象メソッド・実装条件
-  - `(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`
-    - URL は net/url パッケージの\*url.URL で構築する
-    - b.customHeaders をリクエストヘッダとして設定
+  - `func NewHttpClient(rawurl string, method string, data string, customHeaders []string) (*HttpClient, error)`
+    - `url`フィールド は net/url パッケージの\*url.URL で構築する
+    - `customHeaders`引数の要素を`:`で区切って、`requestHeader`フィールドのキーと値に設定
     - HTTP メソッドが GET,DELETE の場合
-      - リクエストボディは設定しない
-      - リクエストヘッダに Content-Type が含まれている場合は削除
+      - リクエストボディ(`requestBody`フィールド)は`nil`
+      - リクエストヘッダに `Content-Type` が含まれている場合は削除
     - HTTP メソッドが POST,PUT,DELETE の場合
-      - リクエストヘッダの Content-Type は"application/json"にする
-      - b.data の値をそのままレスポンスボディに設定
-        - その際、b.data が空であればエラー
+      - リクエストヘッダの `Content-Type` は"application/json"にする
+      - data の値をそのままレスポンスボディ(`requestBody`フィールド)に設定
+        - その際、data が空であればエラー
 
 ### 2 週目：HTTP 通信を実行
 
 - 対応ファイル：`curl/client/client/go`
 - 実装対象型：`HttpClient`
-- 実装内容：`(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`でリクエストを送信して`*http.Request`, `*http.Response`を返却する
+- 実装内容：`func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`でリクエストを送信して`*http.Request`, `*http.Response`を返却する
 - 実装対象メソッド・実装条件
-  - `(c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`
+  - `func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error)`
     - URL, HTTP メソッド, リクエストヘッダ, リクエストボディが適切に設定された`*http.Request`を構築
     - HTTP リクエストを実行してレスポンスを取得
     - `*http.Request`, `*http.Response`を返却
+    - `呼び出し元でCloseしているので、レスポンスボディのクローズは不要`
 
 ### 3 週目：HTTP 通信結果のテキストを構築
 
+- 対応ファイル：`curl/client/client/go`
+- 実装内容:`*http.Request`, `*http.Response`の内容を適切なフォーマットの`string`に整形する
+- 実装対象メソッド・実装条件
+  - `func CreateRequestText(req *http.Request) string`
+    - リクエスト URL,HTTP メソッド,リクエストヘッダを所定のフォーマットで返却
+  - `func CreateResponseText(res *http.Response) string`
+    - レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 - リクエスト内容のフォーマット
   - 改行コードは`\n`
   - 最初に空行を 1 行入れる
