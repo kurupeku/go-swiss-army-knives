@@ -35,6 +35,14 @@ sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
 choco install go-task
 ```
 
+## Subject
+
+作成する各ツールとその課題詳細は以下の通りです。
+
+| Tool   | Desc                       |
+| :----- | :------------------------- |
+| `curl` | [README](./curl/README.md) |
+
 ## Test
 
 各パッケージごとにテスト実行用のタスクを定義しています。
