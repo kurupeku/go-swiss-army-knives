@@ -123,6 +123,7 @@ func CreateResponseText(res *http.Response) string {
 	return sb.String()
 }
 
+// http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数
 func sortedKeys(m map[string][]string) []string {
 	s := make([]string, 0, len(m))
 	for k := range m {
