@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
 )
 
@@ -101,8 +102,8 @@ func CreateRequestText(req *http.Request) string {
 	sb.WriteString(fmt.Sprintf("[URL] %s\n", req.URL.String()))
 	sb.WriteString(fmt.Sprintf("[Method] %s\n", req.Method))
 	sb.WriteString("[Headers]\n")
-	for k, v := range req.Header {
-		sb.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, "; ")))
+	for _, k := range sortedKeys(req.Header) {
+		sb.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(req.Header[k], "; ")))
 	}
 	return sb.String()
 }
@@ -113,11 +114,21 @@ func CreateResponseText(res *http.Response) string {
 	sb.WriteString("\n===Response===\n")
 	sb.WriteString(fmt.Sprintf("[Status] %d\n", res.StatusCode))
 	sb.WriteString("[Headers]\n")
-	for k, v := range res.Header {
-		sb.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(v, "; ")))
+	for _, k := range sortedKeys(res.Header) {
+		sb.WriteString(fmt.Sprintf("  %s: %s\n", k, strings.Join(res.Header[k], "; ")))
 	}
 	sb.WriteString("[Body]\n")
 	b, _ := io.ReadAll(res.Body)
 	sb.WriteString(fmt.Sprintf("%s\n", string(b)))
 	return sb.String()
+}
+
+func sortedKeys(m map[string][]string) []string {
+	s := make([]string, 0, len(m))
+	for k := range m {
+		s = append(s, k)
+	}
+
+	sort.Strings(s)
+	return s
 }
