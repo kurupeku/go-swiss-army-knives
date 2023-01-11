@@ -1,4 +1,3 @@
-curl/curl
 # General
 .DS_Store
 .AppleDouble
@@ -85,7 +84,7 @@ $RECYCLE.BIN/
 # vendor/
 
 # Go workspace file
-go.work
+go.work.sum
 
 .vscode/*
 !.vscode/settings.json
@@ -180,6 +179,6 @@ fabric.properties
 
 # ignore logs
 **.log
-curl/curl
 
-go.work.sum
+# ignore binaries
+curl/curl
