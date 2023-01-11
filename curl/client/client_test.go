@@ -340,8 +340,8 @@ func TestCreateRequestText(t *testing.T) {
 [URL] https://example.com?hoge=fuga&foo=var
 [Method] POST
 [Headers]
-  Content-Type: application/json
   Connection: keep-alive
+  Content-Type: application/json
 `,
 		},
 		{

@@ -55,11 +55,11 @@ $ go run main.go http://example.com -H Sample:test
 [Headers]
   Age: 374145
   Cache-Control: max-age=604800
-  Vary: Accept-Encoding
-  Expires: Wed, 11 Jan 2023 08:26:15 GMT
   Content-Type: text/html; charset=UTF-8
   Date: Wed, 04 Jan 2023 08:26:15 GMT
+  Expires: Wed, 11 Jan 2023 08:26:15 GMT
   Last-Modified: Thu, 17 Oct 2019 07:18:26 GMT
+  Vary: Accept-Encoding
 [Body]
 <!doctype html>
 <html>省略</html>
@@ -80,13 +80,13 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
 ===Response===
 [Status] 200
 [Headers]
-  Cache-Control: max-age=604800
-  Last-Modified: Thu, 17 Oct 2019 07:18:26 GMT
-  Content-Type: text/html; charset=UTF-8
-  Expires: Wed, 11 Jan 2023 08:33:43 GMT
   Accept-Ranges: bytes
-  Date: Wed, 04 Jan 2023 08:33:43 GMT
+  Cache-Control: max-age=604800
   Content-Length: 1256
+  Content-Type: text/html; charset=UTF-8
+  Date: Wed, 04 Jan 2023 08:33:43 GMT
+  Expires: Wed, 11 Jan 2023 08:33:43 GMT
+  Last-Modified: Thu, 17 Oct 2019 07:18:26 GMT
 [Body]
 <!doctype html>
 <html>省略</html>
@@ -143,6 +143,7 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
   - 最初に空行を 1 行入れる
   - 以下の形式で URL, Method, Headers を入れる
     - Headers はスペース 2 つでインデントをつける
+    - Headers が複数ある場合は Key が昇順にソートされた状態で表示する
     - Headers で表示するリクエストヘッダがなくても、`[Headers]`という行は必ず入れる
 
 ```bash
@@ -159,6 +160,7 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
   - 最初に空行を 1 行入れる
   - 以下の形式で Status, Headers, Body を入れる
     - Headers はスペース 2 つでインデントをつける
+    - Headers が複数ある場合は Key が昇順にソートされた状態で表示する
     - Headers で表示するリクエストヘッダがなくても、`[Headers]`という行は必ず入れる
   - Body はインデントなしで出力し、最後に改行を入れる
     - レスポンスボディが空の場合は、空行を出力する
