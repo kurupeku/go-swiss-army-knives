@@ -6,6 +6,7 @@ package cmd
 import (
 	"context"
 	"errors"
+	"io"
 	"logtransfer/input"
 	"logtransfer/logs"
 	"logtransfer/output"
@@ -17,6 +18,11 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+)
+
+const (
+	timeSpan   = 5
+	channelLen = 10
 )
 
 var rootCmd = &cobra.Command{
@@ -46,21 +52,28 @@ e.g ) logtransfer https://sample.com sh ./sample.sh`,
 			return err
 		}
 
-		var (
-			ctx, stop     = signal.NotifyContext(context.Background(), os.Interrupt)
-			ln, out, errc = make(chan []byte, 1), make(chan []byte, 1), make(chan error, 1)
-		)
-		defer stop()
+		ctx, cancel := NewCtx()
+		defer cancel()
 
-		go input.Monitor(ctx, ln, errc, stdout)
-		go storage.Listen(ctx, ln, errc)
-		go storage.Load(ctx, out, errc, 5*time.Second)
-		go output.Forward(ctx, out, errc, u.String())
-		go logs.Error(ctx, errc)
+		StartBackgrounds(ctx, u, stdout)
 
 		subCmd.Run()
 		return nil
 	},
+}
+
+func NewCtx() (context.Context, context.CancelFunc) {
+	return signal.NotifyContext(context.Background(), os.Interrupt)
+}
+
+func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
+	var ln, out, errc = make(chan []byte, channelLen), make(chan []byte, channelLen), make(chan error, channelLen)
+
+	go input.Monitor(ctx, ln, errc, r)
+	go storage.Listen(ctx, ln, errc)
+	go storage.Load(ctx, out, errc, timeSpan*time.Second)
+	go output.Forward(ctx, out, errc, u.String())
+	go logs.Error(ctx, errc)
 }
 
 func Execute() {
