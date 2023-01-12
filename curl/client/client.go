@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"errors"
 )
 
 type HttpClient struct {
@@ -31,8 +32,30 @@ func NewHttpClient(
 	data string,
 	customHeaders []string,
 ) (*HttpClient, error) {
-	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+	var httpClient HttpClient
+	url, _ := url.ParseRequestURI(rawurl)
+
+	httpClient.url = url
+	httpClient.method = method
+
+	switch method {
+	case "GET", "DELETE":
+		httpClient.requestBody = nil
+		httpClient.requestHeader = map[string]string{
+			"Connection": "keep-alive",
+		}
+	case "POST", "PUT", "PATCH":
+		if data == "" {
+			return nil, errors.New("エラー")
+		}
+		httpClient.requestBody = &data
+		httpClient.requestHeader = map[string]string{
+			"Connection": "keep-alive",
+			"Content-Type": "application/json",
+		}
+	}
+
+	return &httpClient, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
