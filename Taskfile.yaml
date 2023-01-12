@@ -22,3 +22,23 @@ tasks:
     cmds:
       - go build -o scurl main.go
     silent: true
+
+  test_lt:
+    desc: Execute test at logtransfer package
+    dir: ./logtransfer
+    cmds:
+      - go test -v ./...
+
+  test_lt_fn:
+    desc: Execute test only single function at logtransfer package
+    dir: ./logtransfer
+    cmds:
+      - go test -v -run {{.CLI_ARGS}} ./...
+    silent: true
+
+  build_lt:
+    desc: Build logtransfer cli as lt (for local OS and ARCH)
+    dir: ./logtransfer
+    cmds:
+      - go build -o lt main.go
+    silent: true
