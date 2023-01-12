@@ -1,0 +1,36 @@
+name: CURL 1 Testing
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "curl/**/**.go"
+
+env:
+  TARGET: curl-1
+  APP: curl
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: "stable"
+
+      - id: result
+        name: Go Test
+        working-directory: ./${{ env.APP }}
+        run: |
+          go test -v -run NewHttpClient ./...
+
+      - name: Send result
+        if: always()
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"account" : "${{ github.actor }}" , "chapter" : "${{ env.TARGET }}", "result": "${{ steps.result.conclusion }}"}' \
+            ${{ secrets.RESULT_API }}

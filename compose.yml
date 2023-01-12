@@ -1,0 +1,13 @@
+services:
+  dev:
+    platform: "linux/amd64"
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    working_dir: /go/src/app
+    volumes:
+      - ./:/go/src/app
+    command:
+      - tail
+      - -f
+      - /dev/null

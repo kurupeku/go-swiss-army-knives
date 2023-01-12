@@ -84,7 +84,7 @@ $RECYCLE.BIN/
 # vendor/
 
 # Go workspace file
-go.work
+go.work.sum
 
 .vscode/*
 !.vscode/settings.json
@@ -179,3 +179,7 @@ fabric.properties
 
 # ignore logs
 **.log
+
+# ignore binaries
+curl/curl
+curl/scurl

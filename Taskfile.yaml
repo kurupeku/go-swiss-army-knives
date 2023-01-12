@@ -1,0 +1,24 @@
+# https://taskfile.dev
+
+version: "3"
+
+tasks:
+  test_curl:
+    desc: Execute test at curl package
+    dir: ./curl
+    cmds:
+      - go test -v ./...
+
+  test_curl_fn:
+    desc: Execute test only single function at curl package
+    dir: ./curl
+    cmds:
+      - go test -v -run {{.CLI_ARGS}} ./...
+    silent: true
+
+  build_curl:
+    desc: Build curl cli as scurl (for local OS and ARCH)
+    dir: ./curl
+    cmds:
+      - go build -o scurl main.go
+    silent: true
