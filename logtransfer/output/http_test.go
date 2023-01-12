@@ -16,16 +16,16 @@ func TestForward(t *testing.T) {
 		url string
 	}
 	tests := []struct {
-		name       string
-		args       args
-		sendedBody string
+		name         string
+		args         args
+		receivedBody string
 	}{
 		{
 			name: "",
 			args: args{
 				url: "https://example.com",
 			},
-			sendedBody: "sended body",
+			receivedBody: "body",
 		},
 	}
 	for _, tt := range tests {
@@ -39,7 +39,7 @@ func TestForward(t *testing.T) {
 					return nil, err
 				}
 
-				if assert.Equal(t, tt.sendedBody, string(b)) {
+				if assert.Equal(t, tt.receivedBody, string(b)) {
 					return httpmock.NewStringResponse(400, ""), nil
 				}
 
@@ -50,7 +50,7 @@ func TestForward(t *testing.T) {
 			defer cancel()
 			out, errc := make(chan []byte, 1), make(chan error, 1)
 			go Forward(ctx, out, errc, tt.args.url)
-			out <- []byte(tt.sendedBody)
+			out <- []byte(tt.receivedBody)
 
 			time.Sleep(1 * time.Second)
 			assert.Equal(t, 1, httpmock.GetTotalCallCount())

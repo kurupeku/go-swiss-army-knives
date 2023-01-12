@@ -29,6 +29,19 @@ func TestMonitor(t *testing.T) {
 			},
 			wantSendCount: 3,
 		},
+		{
+			name: "5 lines outputted",
+			args: args{
+				r: bytes.NewBufferString(
+					`line1
+					line2
+					line3
+					line4
+					line5`,
+				),
+			},
+			wantSendCount: 5,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

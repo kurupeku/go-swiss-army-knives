@@ -22,6 +22,13 @@ func TestListen(t *testing.T) {
 				"line1\nline2\nline3\n",
 			),
 		},
+		{
+			name:  "5 lines sended",
+			lines: []string{"line1", "line2", "line3", "line4", "line5"},
+			wantBuf: bytes.NewBufferString(
+				"line1\nline2\nline3\nline4\nline5\n",
+			),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
