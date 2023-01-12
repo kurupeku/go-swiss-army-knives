@@ -183,3 +183,5 @@ fabric.properties
 # ignore binaries
 curl/curl
 curl/scurl
+logtransfer/logtransfer
+logtransfer/lt
