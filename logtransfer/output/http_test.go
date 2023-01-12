@@ -21,7 +21,7 @@ func TestForward(t *testing.T) {
 		receivedBody string
 	}{
 		{
-			name: "",
+			name: "received buffered string",
 			args: args{
 				url: "https://example.com",
 			},
