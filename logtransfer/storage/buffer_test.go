@@ -47,31 +47,39 @@ func TestListen(t *testing.T) {
 }
 
 func TestLoad(t *testing.T) {
-	type args struct {
-		span time.Duration
-	}
+	span := 1 * time.Second
 	tests := []struct {
 		name   string
-		args   args
 		dumped string
 	}{
 		{
 			name:   "transferred every 1 seconds",
-			args:   args{span: 1 * time.Second},
 			dumped: "dumped\nstring\n",
+		},
+		{
+			name:   "when buf is blank",
+			dumped: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx, cancel := context.WithTimeout(context.Background(), tt.args.span+500*time.Millisecond)
+			defer buf.Reset()
+
+			wait := 500 * time.Millisecond
+			ctx, cancel := context.WithTimeout(context.Background(), span+wait)
 			defer cancel()
 			out, errc := make(chan []byte, 1), make(chan error, 1)
+			go Load(ctx, out, errc, span)
+
 			buf.WriteString(tt.dumped)
-			go Load(ctx, out, errc, tt.args.span)
-			sended := <-out
-			assert.Equal(t, []byte(tt.dumped), sended)
+			if tt.dumped != "" {
+				sended := <-out
+				assert.Equal(t, []byte(tt.dumped), sended)
+			} else {
+				time.Sleep(wait)
+				assert.Len(t, out, 0)
+			}
 			assert.Equal(t, buf.Len(), 0)
-			buf.Reset()
 		})
 	}
 }

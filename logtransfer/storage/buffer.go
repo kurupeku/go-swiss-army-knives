@@ -41,6 +41,9 @@ func Load(ctx context.Context, out chan []byte, errc chan error, span time.Durat
 				errc <- err
 				continue
 			}
+			if len(b) == 0 {
+				continue
+			}
 			out <- b
 		}
 	}
