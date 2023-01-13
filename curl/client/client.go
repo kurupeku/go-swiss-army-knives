@@ -1,9 +1,12 @@
 package client
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 type HttpClient struct {
@@ -32,7 +35,62 @@ func NewHttpClient(
 	customHeaders []string,
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+
+	url, err := url.Parse(rawurl)
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR] Can't parse url: %s", rawurl)
+	}
+
+	if !(method == "GET" || method == "DELETE" || method == "POST" || method == "PUT" || method == "PATCH") {
+		return nil, fmt.Errorf("[ERROR] Unauthorized method: %s", method)
+	}
+
+	rBody, err := setBody(method, data)
+	if err != nil {
+		return nil, err
+	}
+	rHeaders := setHeaders(method, customHeaders)
+
+	client := HttpClient{
+		url:           url,
+		method:        method,
+		requestBody:   rBody,
+		requestHeader: rHeaders,
+	}
+
+	return &client, nil
+}
+
+func setBody(method, data string) (*string, error) {
+	var rb *string
+	if method == "GET" || method == "DELETE" {
+		rb = nil
+	} else if method == "POST" || method == "PUT" || method == "PATCH" {
+		if data == "" {
+			return nil, errors.New("[ERROR] Empty data")
+		}
+		rb = &data
+	}
+	return rb, nil
+}
+
+func setHeaders(method string, ch []string) map[string]string {
+	rh := make(map[string]string)
+	if method == "GET" || method == "DELETE" {
+		for _, h := range ch {
+			if !strings.Contains(h, "Content-Type") {
+				kv := strings.Split(h, ":")
+				rh[kv[0]] = strings.TrimSpace(kv[1])
+			}
+		}
+	} else if method == "POST" || method == "PUT" || method == "PATCH" {
+		for _, h := range ch {
+			kv := strings.Split(h, ":")
+			rh[kv[0]] = strings.TrimSpace(kv[1])
+		}
+		rh["Content-Type"] = "application/json"
+	}
+	return rh
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
