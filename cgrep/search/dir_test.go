@@ -193,6 +193,8 @@ func Test_dir_Search(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer result.Reset()
+
 			d := &dir{
 				path:          tt.fields.path,
 				regexp:        tt.fields.regexp,
@@ -215,7 +217,6 @@ func Test_dir_Search(t *testing.T) {
 			if tt.subDir != nil {
 				assert.True(t, tt.subDir.called)
 			}
-			result.Reset()
 		})
 	}
 }
@@ -257,6 +258,8 @@ func Test_dir_GrepFiles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			defer result.Reset()
+
 			d := &dir{
 				path:          tt.fields.path,
 				regexp:        tt.fields.regexp,

@@ -66,9 +66,9 @@ func ExecSearch(regexpWord string) error {
 
 func Render() {
 	if withContent {
-		result.RenderWithContent()
+		result.RenderWithContent(os.Stdout)
 	} else {
-		result.RenderFiles()
+		result.RenderFiles(os.Stdout)
 	}
 }
 
