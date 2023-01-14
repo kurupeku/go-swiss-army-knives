@@ -33,11 +33,11 @@ func New(fullPath string, re *regexp.Regexp) (Dir, error) {
 		return d, nil
 	}
 
-	d.scan()
+	d.Scan()
 	return d, nil
 }
 
-func (d *dir) scan() error {
+func (d *dir) Scan() error {
 	fs, err := ioutil.ReadDir(d.path)
 	if err != nil {
 		return err
@@ -68,12 +68,12 @@ func (d *dir) Search(wg *sync.WaitGroup) {
 		go subDir.Search(wg)
 	}
 
-	if err := d.grepFiles(); err != nil {
+	if err := d.GrepFiles(); err != nil {
 		result.SetError(err)
 	}
 }
 
-func (d *dir) grepFiles() error {
+func (d *dir) GrepFiles() error {
 	for _, path := range d.fileFullPaths {
 		f, err := os.Open(path)
 		if err != nil {

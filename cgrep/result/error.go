@@ -6,18 +6,18 @@ import (
 	"sync"
 )
 
-type errorLogs struct {
+type ErrorLogs struct {
 	sync.Mutex
 	errs []error
 }
 
-var es = &errorLogs{}
+var GlobalError = &ErrorLogs{}
 
 func Error() error {
 	if hasError() {
-		ss := make([]string, 1, len(es.errs)+1)
+		ss := make([]string, 1, len(GlobalError.errs)+1)
 		ss[0] = "[Error]"
-		for _, e := range es.errs {
+		for _, e := range GlobalError.errs {
 			ss = append(ss, e.Error())
 		}
 
@@ -28,13 +28,13 @@ func Error() error {
 }
 
 func SetError(err error) {
-	es.errs = append(es.errs, err)
+	GlobalError.errs = append(GlobalError.errs, err)
 }
 
 func hasError() bool {
-	return len(es.errs) > 0
+	return len(GlobalError.errs) > 0
 }
 
-func resetError() {
-	es = &errorLogs{}
+func ResetError() {
+	GlobalError = &ErrorLogs{}
 }

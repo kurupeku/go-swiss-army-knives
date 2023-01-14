@@ -6,58 +6,53 @@ import (
 	"sync"
 )
 
-type Result interface {
-	Files() string
-	WithContent() string
-}
-
 type line struct {
 	txt string
 	no  int
 }
 
-type result struct {
+type Result struct {
 	sync.Mutex
-	data map[string][]line
+	Data map[string][]line
 }
 
-var r = &result{data: make(map[string][]line, 100)}
+var GlobalResult = &Result{Data: make(map[string][]line, 100)}
 
 func Set(fileName, txt string, no int) {
-	r.Lock()
-	defer r.Unlock()
+	GlobalResult.Lock()
+	defer GlobalResult.Unlock()
 
-	if _, ok := r.data[fileName]; !ok {
-		r.data[fileName] = make([]line, 0, 10)
+	if _, ok := GlobalResult.Data[fileName]; !ok {
+		GlobalResult.Data[fileName] = make([]line, 0, 10)
 	}
-	r.data[fileName] = append(r.data[fileName], line{txt, no})
+	GlobalResult.Data[fileName] = append(GlobalResult.Data[fileName], line{txt, no})
 }
 
-func Get() *result {
-	return r
+func Get() *Result {
+	return GlobalResult
 }
 
 func RenderWithContent() {
-	for i, fName := range r.Files() {
+	for i, fName := range GlobalResult.Files() {
 		if i > 0 {
 			fmt.Print("\n")
 		}
 		fmt.Println(fName)
-		for _, l := range r.data[fName] {
+		for _, l := range GlobalResult.Data[fName] {
 			fmt.Printf("%d: %s\n", l.no, l.txt)
 		}
 	}
 }
 
 func RenderFiles() {
-	for _, fName := range r.Files() {
+	for _, fName := range GlobalResult.Files() {
 		fmt.Println(fName)
 	}
 }
 
-func (r *result) Files() []string {
-	files := make([]string, 0, len(r.data))
-	for k := range r.data {
+func (r *Result) Files() []string {
+	files := make([]string, 0, len(r.Data))
+	for k := range r.Data {
 		files = append(files, k)
 	}
 
@@ -65,6 +60,6 @@ func (r *result) Files() []string {
 	return files
 }
 
-func reset() {
-	r = &result{data: make(map[string][]line, 100)}
+func Reset() {
+	GlobalResult = &Result{Data: make(map[string][]line, 100)}
 }
