@@ -6,13 +6,15 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"sync"
 
 	"cgrep/result"
 )
 
-var currentDir string
+var (
+	currentDir string
+	gitRegExp  = regexp.MustCompile(`\.git$`)
+)
 
 type Dir interface {
 	Search(wg *sync.WaitGroup)
@@ -27,8 +29,11 @@ type dir struct {
 
 func New(fullPath string, re *regexp.Regexp) (Dir, error) {
 	d := &dir{path: fullPath, regexp: re}
-	d.scan()
+	if d.isGitDri() {
+		return d, nil
+	}
 
+	d.scan()
 	return d, nil
 }
 
@@ -70,10 +75,6 @@ func (d *dir) Search(wg *sync.WaitGroup) {
 
 func (d *dir) grepFiles() error {
 	for _, path := range d.fileFullPaths {
-		if strings.Contains(path, ".git/") {
-			continue
-		}
-
 		f, err := os.Open(path)
 		if err != nil {
 			return err
@@ -91,7 +92,7 @@ func (d *dir) grepFiles() error {
 				continue
 			}
 
-			rel, err := relativePath(f.Name())
+			rel, err := relativePath(f)
 			if err != nil {
 				return err
 			}
@@ -106,8 +107,12 @@ func (d *dir) grepFiles() error {
 	return nil
 }
 
-func relativePath(fullPath string) (string, error) {
-	return filepath.Rel(currentDir, fullPath)
+func (d *dir) isGitDri() bool {
+	return gitRegExp.MatchString(d.path)
+}
+
+func relativePath(file *os.File) (string, error) {
+	return filepath.Rel(currentDir, file.Name())
 }
 
 func init() {
