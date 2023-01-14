@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
@@ -12,6 +13,14 @@ type HttpClient struct {
 	requestBody   *string
 	requestHeader map[string]string
 }
+
+const (
+	GET    = "GET"
+	DELETE = "DELETE"
+	POST   = "POST"
+	PUT    = "PUT"
+	PATCH  = "PATCH"
+)
 
 // TODO:URLはnet/urlパッケージの*url.URLで構築する
 //
@@ -31,8 +40,32 @@ func NewHttpClient(
 	data string,
 	customHeaders []string,
 ) (*HttpClient, error) {
-	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+	u, err := url.Parse(rawurl)
+	if err != nil {
+		return nil, err
+	}
+
+	var hc HttpClient
+	if method == GET || method == DELETE {
+		hc.requestHeader = map[string]string{"Connection": "keep-alive"}
+	}
+	if method == POST || method == PUT || method == PATCH {
+		if data == "" {
+			return nil, errors.New("データが空です。")
+		}
+		hc.requestBody = &data
+		hc.requestHeader = map[string]string{
+			"Connection":   "keep-alive",
+			"Content-Type": "application/json",
+		}
+	}
+
+	return &HttpClient{
+		url:           u,
+		method:        method,
+		requestBody:   hc.requestBody,
+		requestHeader: hc.requestHeader,
+	}, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
