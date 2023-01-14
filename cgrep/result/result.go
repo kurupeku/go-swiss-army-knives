@@ -6,26 +6,26 @@ import (
 	"sync"
 )
 
-type line struct {
-	txt string
-	no  int
+type Line struct {
+	Text string
+	No   int
 }
 
 type Result struct {
 	sync.Mutex
-	Data map[string][]line
+	Data map[string][]Line
 }
 
-var GlobalResult = &Result{Data: make(map[string][]line, 100)}
+var GlobalResult = &Result{Data: make(map[string][]Line, 100)}
 
 func Set(fileName, txt string, no int) {
 	GlobalResult.Lock()
 	defer GlobalResult.Unlock()
 
 	if _, ok := GlobalResult.Data[fileName]; !ok {
-		GlobalResult.Data[fileName] = make([]line, 0, 10)
+		GlobalResult.Data[fileName] = make([]Line, 0, 10)
 	}
-	GlobalResult.Data[fileName] = append(GlobalResult.Data[fileName], line{txt, no})
+	GlobalResult.Data[fileName] = append(GlobalResult.Data[fileName], Line{txt, no})
 }
 
 func Get() *Result {
@@ -39,7 +39,7 @@ func RenderWithContent() {
 		}
 		fmt.Println(fName)
 		for _, l := range GlobalResult.Data[fName] {
-			fmt.Printf("%d: %s\n", l.no, l.txt)
+			fmt.Printf("%d: %s\n", l.No, l.Text)
 		}
 	}
 }
@@ -61,5 +61,5 @@ func (r *Result) Files() []string {
 }
 
 func Reset() {
-	GlobalResult = &Result{Data: make(map[string][]line, 100)}
+	GlobalResult = &Result{Data: make(map[string][]Line, 100)}
 }
