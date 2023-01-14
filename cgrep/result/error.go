@@ -34,3 +34,7 @@ func SetError(err error) {
 func hasError() bool {
 	return len(es.errs) > 0
 }
+
+func resetError() {
+	es = &errorLogs{}
+}

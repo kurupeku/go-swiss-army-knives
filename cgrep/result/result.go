@@ -76,3 +76,7 @@ func (r *result) files() []string {
 func (r *result) paddingTemplate() string {
 	return strings.Join([]string{"%", strconv.Itoa(r.max), "d: %s\n"}, "")
 }
+
+func reset() {
+	r = &result{data: make(map[string][]line, 100)}
+}
