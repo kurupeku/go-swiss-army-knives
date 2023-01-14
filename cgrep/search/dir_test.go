@@ -19,6 +19,15 @@ var (
 	testRegExp2        = regexp.MustCompile("_2")
 )
 
+type testMockDir struct {
+	called bool
+}
+
+func (d *testMockDir) Search(wg *sync.WaitGroup) {
+	defer wg.Done()
+	d.called = true
+}
+
 func TestNew(t *testing.T) {
 	type args struct {
 		fullPath string
@@ -123,6 +132,7 @@ func Test_dir_Search(t *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
+		subDir *testMockDir
 		setup  func(w *result.Result)
 		want   *result.Result
 	}{
@@ -135,7 +145,7 @@ func Test_dir_Search(t *testing.T) {
 					&dir{
 						path:          testSubDirPath,
 						regexp:        testRegExp1,
-						subDirs:       nil,
+						subDirs:       []Dir{},
 						fileFullPaths: []string{testSubFilePath},
 					},
 				},
@@ -156,7 +166,7 @@ func Test_dir_Search(t *testing.T) {
 					&dir{
 						path:          testSubDirPath,
 						regexp:        testRegExp2,
-						subDirs:       nil,
+						subDirs:       []Dir{},
 						fileFullPaths: []string{testSubFilePath},
 					},
 				},
@@ -185,6 +195,9 @@ func Test_dir_Search(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(tt.want)
 			}
+			if tt.subDir != nil {
+				d.subDirs = append(d.subDirs, tt.subDir)
+			}
 
 			wg := &sync.WaitGroup{}
 			wg.Add(1)
@@ -192,6 +205,9 @@ func Test_dir_Search(t *testing.T) {
 			wg.Wait()
 
 			assert.Equal(t, tt.want, result.GlobalResult)
+			if tt.subDir != nil {
+				assert.True(t, tt.subDir.called)
+			}
 			result.Reset()
 		})
 	}
