@@ -6,6 +6,7 @@ package cmd
 import (
 	"cgrep/result"
 	"cgrep/search"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -35,7 +36,7 @@ Args:
 			return err
 		}
 
-		Render()
+		Render(os.Stdout)
 		return nil
 	},
 }
@@ -64,11 +65,11 @@ func ExecSearch(regexpWord string) error {
 	return nil
 }
 
-func Render() {
+func Render(w io.Writer) {
 	if withContent {
-		result.RenderWithContent(os.Stdout)
+		result.RenderWithContent(w)
 	} else {
-		result.RenderFiles(os.Stdout)
+		result.RenderFiles(w)
 	}
 }
 
