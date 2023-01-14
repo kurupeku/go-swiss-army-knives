@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"cgrep/result"
 	"os"
 	"path/filepath"
 
@@ -24,6 +25,10 @@ to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		_, err := filepath.Abs(dir)
 		if err != nil {
+			return err
+		}
+
+		if err := result.Error(); err != nil {
 			return err
 		}
 
