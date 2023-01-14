@@ -27,38 +27,49 @@ Args:
   A search string that can be compiled as a regular expression`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fullPath, err := filepath.Abs(dir)
-		if err != nil {
+		if err := ExecSearch(args[0]); err != nil {
 			return err
 		}
-
-		re, err := regexp.Compile(args[0])
-		if err != nil {
-			return err
-		}
-
-		s, err := search.New(fullPath, re)
-		if err != nil {
-			return err
-		}
-
-		var wg = new(sync.WaitGroup)
-		wg.Add(1)
-		go s.Search(wg)
-		wg.Wait()
 
 		if err := result.Error(); err != nil {
 			return err
 		}
 
-		if withContent {
-			result.RenderWithContent()
-		} else {
-			result.RenderFiles()
-		}
-
+		Render()
 		return nil
 	},
+}
+
+func ExecSearch(regexpWord string) error {
+	fullPath, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
+
+	re, err := regexp.Compile(regexpWord)
+	if err != nil {
+		return err
+	}
+
+	s, err := search.New(fullPath, re)
+	if err != nil {
+		return err
+	}
+
+	var wg = new(sync.WaitGroup)
+	wg.Add(1)
+	go s.Search(wg)
+	wg.Wait()
+
+	return nil
+}
+
+func Render() {
+	if withContent {
+		result.RenderWithContent()
+	} else {
+		result.RenderFiles()
+	}
 }
 
 func Execute() {
