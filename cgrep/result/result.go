@@ -2,6 +2,7 @@ package result
 
 import (
 	"fmt"
+	"io"
 	"sort"
 	"sync"
 )
@@ -32,21 +33,21 @@ func Get() *Result {
 	return GlobalResult
 }
 
-func RenderWithContent() {
+func RenderWithContent(w io.Writer) {
 	for i, fName := range GlobalResult.Files() {
 		if i > 0 {
-			fmt.Print("\n")
+			fmt.Fprintln(w, "")
 		}
-		fmt.Println(fName)
+		fmt.Fprintln(w, fName)
 		for _, l := range GlobalResult.Data[fName] {
-			fmt.Printf("%d: %s\n", l.No, l.Text)
+			fmt.Fprintf(w, "%d: %s\n", l.No, l.Text)
 		}
 	}
 }
 
-func RenderFiles() {
+func RenderFiles(w io.Writer) {
 	for _, fName := range GlobalResult.Files() {
-		fmt.Println(fName)
+		fmt.Fprintln(w, fName)
 	}
 }
 
