@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
@@ -13,8 +14,6 @@ type HttpClient struct {
 	requestHeader map[string]string
 }
 
-// TODO:URLはnet/urlパッケージの*url.URLで構築する
-//
 // TODO:customHeadersをリクエストヘッダとして設定
 //
 // TODO:HTTPメソッドがGET,DELETEの場合
@@ -32,7 +31,37 @@ func NewHttpClient(
 	customHeaders []string,
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+
+	url, err := url.ParseRequestURI(rawurl)
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR] Can't parse url: %s", rawurl)
+	} else {
+		fmt.Printf("[OK]URI= %v \n", url)
+	}
+
+	var rBody *string
+	// method 判別
+	switch method {
+	case "GET", "DELETE":
+		fmt.Print("method = GET,DELETE")
+		rBody = nil
+	case "POST", "PUT", "PATCH":
+		fmt.Print("method = POST,PUT,PATCH")
+		rBody = &data
+	default:
+		return nil, fmt.Errorf("[ERROR] Unauthorized method: %s", method)
+	}
+
+	client := HttpClient{
+		url:         url,
+		method:      method,
+		requestBody: rBody,
+		//requestHeader: rHeader, #TODO
+	}
+
+	// HttpClientのポインターで戻り値を返す ,
+	// errorはnil(正常終了)で戻り値を返す
+	return &client, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
