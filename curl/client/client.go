@@ -1,9 +1,11 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 type HttpClient struct {
@@ -31,8 +33,41 @@ func NewHttpClient(
 	data string,
 	customHeaders []string,
 ) (*HttpClient, error) {
-	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+	d := data
+
+	// URL生成
+	u, err := url.Parse(rawurl)
+
+	// リクエストヘッダ生成
+	mp := make(map[string]string)
+	for _, v := range customHeaders {
+		array := strings.Split(v, ": ")
+		mp[array[0]] = array[1]
+		array = nil
+	}
+
+	// 返却する構造体を作成
+	var new_client HttpClient
+	new_client.url = u
+	new_client.method = method
+	new_client.requestHeader = mp
+	switch method {
+	case "GET", "DELETE":
+		new_client.requestBody = nil
+		delete(new_client.requestHeader, "Content-Type")
+	case "POST", "PUT", "PATCH":
+		new_client.requestHeader["Content-Type"] = "application/json"
+		if d == "" {
+			err = errors.New("dataが空")
+		}
+		new_client.requestBody = &d
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &new_client, err
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
