@@ -1,9 +1,11 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 type HttpClient struct {
@@ -32,7 +34,42 @@ func NewHttpClient(
 	customHeaders []string,
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+	newHC := HttpClient{}
+	url, err := url.ParseRequestURI(rawurl)
+	if err != nil {
+		return nil, errors.New("URLが不正なフォーマットです。")
+	}
+	newHC.url = url
+	newHC.method = method
+
+	switch method {
+	case "GET", "DELETE":
+		newHC.requestBody = nil
+		newHC.requestHeader = make(map[string]string)
+		for _, header := range customHeaders {
+			parts := strings.SplitN(header, ": ", 2)
+			key := parts[0]
+			value := parts[1]
+			newHC.requestHeader[key] = value
+		}
+		delete(newHC.requestHeader, "Content-Type")
+
+	case "POST", "PUT", "PATCH":
+		if data == "" {
+			return nil, errors.New("dataが空です。")
+		}
+		newHC.requestBody = &data
+		newHC.requestHeader = make(map[string]string)
+		for _, header := range customHeaders {
+			parts := strings.SplitN(header, ": ", 2)
+			key := parts[0]
+			value := parts[1]
+			newHC.requestHeader[key] = value
+		}
+		newHC.requestHeader["Content-Type"] = "application/json"
+	}
+
+	return &newHC, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
