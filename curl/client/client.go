@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
@@ -31,8 +32,28 @@ func NewHttpClient(
 	data string,
 	customHeaders []string,
 ) (*HttpClient, error) {
-	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+	u, err := url.Parse(rawurl)
+	if err != nil {
+		fmt.Println("url parse error")
+		return &HttpClient{}, err
+	}
+
+	for {
+	}
+
+	if method == "GET" || method == "DELETE" {
+		return &HttpClient{
+			url:         u,
+			method:      method,
+			requestBody: nil,
+		}, nil
+	}
+
+	return &HttpClient{
+		url:         u,
+		method:      method,
+		requestBody: data,
+	}, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
