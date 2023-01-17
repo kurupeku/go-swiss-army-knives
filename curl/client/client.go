@@ -2,7 +2,7 @@ package client
 
 import (
 	"errors"
-	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"sort"
@@ -37,19 +37,7 @@ func NewHttpClient(
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
 
 	http_client := HttpClient{}
-	http_client.requestHeader = map[string]string{}
-	http_client.method = method
 
-	// urlフィールド は net/url パッケージの*url.URL で構築する
-	u, _ := url.Parse(rawurl)
-	http_client.url = u
-
-	// リクエストボディ(requestBodyフィールド)はnil
-	if method == "GET" || method == "DELETE" {
-		http_client.requestBody = nil
-	}
-	// data の値をそのままレスポンスボディ(requestBodyフィールド)に設定
-	// その際、data が空であればエラー
 	if method == "POST" || method == "PUT" || method == "PATCH" {
 		if data == "" {
 			return nil, errors.New("no Data")
@@ -57,13 +45,18 @@ func NewHttpClient(
 		http_client.requestBody = &data
 	}
 
-	// customHeaders引数の要素を:で区切って、requestHeaderフィールドのキーと値に設定
-	// HTTP メソッドが GET,DELETE の場合
-	// リクエストヘッダに Content-Type が含まれている場合は削除
-	// HTTP メソッドが POST,PUT,DELETE の場合
-	// リクエストヘッダの Content-Type は"application/json"にする
-	for i := range customHeaders {
-		v := strings.Split(customHeaders[i], ":")
+	http_client.method = method
+
+	u, _ := url.Parse(rawurl)
+	http_client.url = u
+
+	if method == "GET" || method == "DELETE" {
+		http_client.requestBody = nil
+	}
+
+	http_client.requestHeader = map[string]string{}
+	for _, val := range customHeaders {
+		v := strings.Split(val, ":")
 		if v[0] == "Content-Type" {
 			continue
 		}
@@ -72,7 +65,6 @@ func NewHttpClient(
 	if method == "POST" || method == "PUT" || method == "PATCH" {
 		http_client.requestHeader["Content-Type"] = "application/json"
 	}
-	fmt.Println(http_client)
 	return &http_client, nil
 }
 
@@ -91,7 +83,29 @@ func (c *HttpClient) Execute() (string, string, error) {
 // TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
-	return nil, nil, nil
+
+	//http.Requestを生成。bodyは無い場合があるのでチェック
+	var b io.Reader
+	if c.requestBody == nil {
+		b = nil
+	} else {
+		b = strings.NewReader(*c.requestBody)
+	}
+	req, _ := http.NewRequest(c.method, c.url.String(), b)
+
+	//リクエストヘダーは複数あるはずなので繰り返しセット
+	for k, v := range c.requestHeader {
+		req.Header.Set(k, v)
+	}
+
+	cli := new(http.Client)
+	res, err := cli.Do(req)
+	//エラーならerr以外何も返さない
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return req, res, nil
 }
 
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
