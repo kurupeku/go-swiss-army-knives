@@ -1,10 +1,11 @@
 package client
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 type HttpClient struct {
@@ -34,25 +35,38 @@ func NewHttpClient(
 ) (*HttpClient, error) {
 	u, err := url.Parse(rawurl)
 	if err != nil {
-		fmt.Println("url parse error")
-		return &HttpClient{}, err
+		return nil, err
 	}
 
-	for {
+	rh := make(map[string]string, 0)
+	for _, v := range customHeaders {
+		s := strings.ReplaceAll(v, " ", "")
+		arr := strings.Split(s, ":")
+		rh[arr[0]] = arr[1]
 	}
 
 	if method == "GET" || method == "DELETE" {
+		delete(rh, "Content-Type")
 		return &HttpClient{
-			url:         u,
-			method:      method,
-			requestBody: nil,
+			url:           u,
+			method:        method,
+			requestBody:   nil,
+			requestHeader: rh,
 		}, nil
 	}
 
+	if data == "" {
+		err := errors.New("requestBody is empty")
+		return nil, err
+	}
+
+	rh["Content-Type"] = "application/json"
+
 	return &HttpClient{
-		url:         u,
-		method:      method,
-		requestBody: data,
+		url:           u,
+		method:        method,
+		requestBody:   &data,
+		requestHeader: rh,
 	}, nil
 }
 
