@@ -34,7 +34,7 @@ func NewHttpClient(
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
 
-	url, err := url.ParseRequestURI(rawurl)
+	u, err := url.ParseRequestURI(rawurl)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Can't parse url: %s", rawurl)
 	}
@@ -62,7 +62,7 @@ func NewHttpClient(
 	}
 
 	client := HttpClient{
-		url:           url,
+		url:           u,
 		method:        method,
 		requestBody:   rBody,
 		requestHeader: rHeader,
