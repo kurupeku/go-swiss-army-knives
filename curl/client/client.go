@@ -1,10 +1,11 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
-	"errors"
+	"strings"
 )
 
 type HttpClient struct {
@@ -41,18 +42,25 @@ func NewHttpClient(
 	switch method {
 	case "GET", "DELETE":
 		httpClient.requestBody = nil
-		httpClient.requestHeader = map[string]string{
-			"Connection": "keep-alive",
+		httpClient.requestHeader = map[string]string{}
+		for _, customHeader := range customHeaders {
+			cH := strings.Split(customHeader, ":")
+			if cH[0] == "Content-Type" {
+				continue
+			}
+			httpClient.requestHeader[cH[0]] = strings.TrimSpace(cH[1]);
 		}
 	case "POST", "PUT", "PATCH":
 		if data == "" {
 			return nil, errors.New("エラー")
 		}
 		httpClient.requestBody = &data
-		httpClient.requestHeader = map[string]string{
-			"Connection": "keep-alive",
-			"Content-Type": "application/json",
+		httpClient.requestHeader = map[string]string{}
+		for _, customHeader := range customHeaders {
+			cH := strings.Split(customHeader, ":")
+			httpClient.requestHeader[cH[0]] = strings.TrimSpace(cH[1]);
 		}
+		httpClient.requestHeader["Content-Type"] = "application/json";
 	}
 
 	return &httpClient, nil
