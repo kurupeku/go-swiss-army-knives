@@ -37,24 +37,26 @@ func NewHttpClient(
 	url, err := url.ParseRequestURI(rawurl)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Can't parse url: %s", rawurl)
-	} else {
-		fmt.Printf("[OK]URI= %v \n", url)
 	}
 
-	var rBody *string
 	rHeader, err := setHeader(method, customHeaders)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Can't parse url: %s", rawurl)
 	}
 
+	var rBody *string
 	// method 判別
 	switch method {
 	case "GET", "DELETE":
-		fmt.Print("method = GET,DELETE")
+		fmt.Print("method = GET,DELETE \n")
 		rBody = nil
 	case "POST", "PUT", "PATCH":
-		fmt.Print("method = POST,PUT,PATCH")
-		rBody = &data
+		fmt.Print("method = POST,PUT,PATCH \n")
+		if data == "" {
+			return nil, fmt.Errorf("[ERROR] rBody is empty with %s", method)
+		} else {
+			rBody = &data
+		}
 	default:
 		return nil, fmt.Errorf("[ERROR] Unauthorized method: %s", method)
 	}
@@ -65,6 +67,11 @@ func NewHttpClient(
 		requestBody:   rBody,
 		requestHeader: rHeader,
 	}
+
+	fmt.Printf("client.url = %v \n", client.url)
+	fmt.Printf("client.method = %v \n", client.method)
+	fmt.Printf("client.requestBody = %v \n", client.requestBody)
+	fmt.Printf("client.requestHeader = %v \n", client.requestHeader)
 
 	// HttpClientのポインターで戻り値を返す ,
 	// errorはnil(正常終了)で戻り値を返す
@@ -87,11 +94,8 @@ func setHeader(method string, customHeaders []string) (map[string]string, error)
 			delete(m, "Content-Type")
 		}
 	case "POST", "PUT", "PATCH":
-		// "Content-Type" があったら valueを "application/json" に変更
-		_, ok := m["Content-Type"]
-		if ok {
-			m["Content-Type"] = "application/json"
-		}
+		// "Content-Type": "application/json" 必須
+		m["Content-Type"] = "application/json"
 	default:
 		return nil, fmt.Errorf("[ERROR] Unauthorized method: %s", method)
 	}
