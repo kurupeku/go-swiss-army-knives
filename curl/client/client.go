@@ -1,9 +1,12 @@
 package client
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 type HttpClient struct {
@@ -32,7 +35,45 @@ func NewHttpClient(
 	customHeaders []string,
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+
+	http_client := HttpClient{}
+	http_client.requestHeader = map[string]string{}
+	http_client.method = method
+
+	// urlフィールド は net/url パッケージの*url.URL で構築する
+	u, _ := url.Parse(rawurl)
+	http_client.url = u
+
+	// リクエストボディ(requestBodyフィールド)はnil
+	if method == "GET" || method == "DELETE" {
+		http_client.requestBody = nil
+	}
+	// data の値をそのままレスポンスボディ(requestBodyフィールド)に設定
+	// その際、data が空であればエラー
+	if method == "POST" || method == "PUT" || method == "PATCH" {
+		if data == "" {
+			return nil, errors.New("no Data")
+		}
+		http_client.requestBody = &data
+	}
+
+	// customHeaders引数の要素を:で区切って、requestHeaderフィールドのキーと値に設定
+	// HTTP メソッドが GET,DELETE の場合
+	// リクエストヘッダに Content-Type が含まれている場合は削除
+	// HTTP メソッドが POST,PUT,DELETE の場合
+	// リクエストヘッダの Content-Type は"application/json"にする
+	for i := range customHeaders {
+		v := strings.Split(customHeaders[i], ":")
+		if v[0] == "Content-Type" {
+			continue
+		}
+		http_client.requestHeader[v[0]] = strings.TrimSpace(v[1])
+	}
+	if method == "POST" || method == "PUT" || method == "PATCH" {
+		http_client.requestHeader["Content-Type"] = "application/json"
+	}
+	fmt.Println(http_client)
+	return &http_client, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
