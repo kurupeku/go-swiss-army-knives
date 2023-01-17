@@ -106,10 +106,8 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 }
 
 func (c *HttpClient) setRequestHeader(req *http.Request) {
-	req.Header.Set("Connection", c.requestHeader["Connection"])
-	switch c.method {
-	case POST, PUT, PATCH:
-		req.Header.Set("Content-Type", c.requestHeader["application/json"])
+	for k, v := range c.requestHeader {
+		req.Header.Set(k, v)
 	}
 }
 
