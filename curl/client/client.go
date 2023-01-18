@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"sort"
@@ -32,7 +33,28 @@ func NewHttpClient(
 	customHeaders []string,
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
-	return nil, nil
+	c := HttpClient{}
+	c.url, _ = url.Parse(rawurl)
+	c.method = method
+	c.requestHeader = make(map[string]string)
+	c.requestHeader["Connection"] = "keep-alive"
+	switch method {
+	case "GET", "DELETE":
+		c.requestBody = nil
+	default:
+		break
+	}
+	switch method {
+	case "POST", "PUT", "PATCH":
+		if data == "" {
+			return nil, errors.New("empty data")
+		}
+		c.requestBody = &data
+		c.requestHeader["Content-Type"] = "application/json"
+	default:
+		break
+	}
+	return &c, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
