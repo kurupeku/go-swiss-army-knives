@@ -1,6 +1,8 @@
 package client
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"net/url"
@@ -75,7 +77,20 @@ func (c *HttpClient) Execute() (string, string, error) {
 // TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
-	return nil, nil, nil
+	jsonString, _ := json.Marshal(c.requestBody)
+	req, err := http.NewRequest(c.method, c.url.String(), bytes.NewBuffer(jsonString))
+	if err != nil {
+		return nil, nil, err
+	}
+	for k, _ := range c.requestHeader {
+		req.Header.Set(k, c.requestHeader[k])
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	return req, res, nil
 }
 
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
