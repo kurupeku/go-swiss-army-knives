@@ -112,21 +112,20 @@ func (c *HttpClient) Execute() (string, string, error) {
 // TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
-	// req, err := http.NewRequest(c.method, c.url.String(), nil)
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
-	// for k, v := range c.requestHeader {
-	// 	req.Header.Add(k, v)
-	// }
+	req, err := http.NewRequest(c.method, c.url.String(), nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	for k, v := range c.requestHeader {
+		req.Header.Add(k, v)
+	}
 
-	// // TODO: cでDoメソッドを使えるようにする？
-	// resp, err := c.Do(req)
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
-	// return req, resp, nil
-	return nil, nil, nil
+	client := new(http.Client)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	return req, resp, nil
 }
 
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
