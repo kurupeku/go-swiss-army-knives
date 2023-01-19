@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 type HttpClient struct {
@@ -37,14 +38,16 @@ func NewHttpClient(
 	c.url, _ = url.Parse(rawurl)
 	c.method = method
 	c.requestHeader = make(map[string]string)
-	c.requestHeader["Connection"] = "keep-alive"
+	for _, v := range customHeaders {
+		e := strings.Split(v, ":")
+		c.requestHeader[e[0]] = strings.TrimSpace(e[1])
+	}
 	switch method {
 	case "GET", "DELETE":
 		c.requestBody = nil
-	default:
-		break
-	}
-	switch method {
+		if c.requestHeader["Content-Type"] != "" {
+			delete(c.requestHeader, "Content-Type")
+		}
 	case "POST", "PUT", "PATCH":
 		if data == "" {
 			return nil, errors.New("empty data")
@@ -52,7 +55,7 @@ func NewHttpClient(
 		c.requestBody = &data
 		c.requestHeader["Content-Type"] = "application/json"
 	default:
-		break
+		return nil, errors.New("invalid method")
 	}
 	return &c, nil
 }
