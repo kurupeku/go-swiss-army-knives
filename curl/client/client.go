@@ -36,12 +36,14 @@ func NewHttpClient(
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
 
-	url, err := url.Parse(rawurl)
+	u, err := url.Parse(rawurl)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Can't parse url: %s", rawurl)
 	}
 
-	if !(method == "GET" || method == "DELETE" || method == "POST" || method == "PUT" || method == "PATCH") {
+	switch method {
+	case "GET", "DELETE", "POST", "PUT", "PATCH":
+	default:
 		return nil, fmt.Errorf("[ERROR] Unauthorized method: %s", method)
 	}
 
@@ -52,7 +54,7 @@ func NewHttpClient(
 	rHeaders := setHeaders(method, customHeaders)
 
 	client := HttpClient{
-		url:           url,
+		url:           u,
 		method:        method,
 		requestBody:   rBody,
 		requestHeader: rHeaders,
@@ -63,9 +65,10 @@ func NewHttpClient(
 
 func setBody(method, data string) (*string, error) {
 	var rb *string
-	if method == "GET" || method == "DELETE" {
+	switch method {
+	case "GET", "DELETE":
 		rb = nil
-	} else if method == "POST" || method == "PUT" || method == "PATCH" {
+	case "POST", "PUT", "PATCH":
 		if data == "" {
 			return nil, errors.New("[ERROR] Empty data")
 		}
@@ -76,14 +79,15 @@ func setBody(method, data string) (*string, error) {
 
 func setHeaders(method string, ch []string) map[string]string {
 	rh := make(map[string]string)
-	if method == "GET" || method == "DELETE" {
+	switch method {
+	case "GET", "DELETE":
 		for _, h := range ch {
 			if !strings.Contains(h, "Content-Type") {
 				kv := strings.Split(h, ":")
 				rh[kv[0]] = strings.TrimSpace(kv[1])
 			}
 		}
-	} else if method == "POST" || method == "PUT" || method == "PATCH" {
+	case "POST", "PUT", "PATCH":
 		for _, h := range ch {
 			kv := strings.Split(h, ":")
 			rh[kv[0]] = strings.TrimSpace(kv[1])
