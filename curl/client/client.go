@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"sort"
@@ -96,13 +97,25 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	reqstr := fmt.Sprintf("\n===Request===\n[URL] %s\n[Method] %s\n[Headers]\n", req.URL, req.Method)
+	for _, k := range sortedKeys(req.Header) {
+		reqstr = fmt.Sprintf(reqstr+"  %s: %s\n", k, req.Header[k][0])
+	}
+	return reqstr
 }
 
 // TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 func CreateResponseText(res *http.Response) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	resstr := fmt.Sprintf("\n===Response===\n[Status] %s\n[Headers]", strings.Split(res.Status, " ")[0])
+	for _, k := range sortedKeys(res.Header) {
+		resstr = fmt.Sprintf(resstr+"\n  %s: %s", k, res.Header[k][0])
+	}
+	resstr = fmt.Sprintf(resstr + "\n")
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(res.Body)
+	resstr = fmt.Sprintf(resstr+"[Body]\n%s\n", buf.String())
+	return resstr
 }
 
 // http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数
