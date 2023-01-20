@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"sort"
@@ -113,9 +114,14 @@ func CreateResponseText(res *http.Response) string {
 		resstr = fmt.Sprintf(resstr+"\n  %s: %s", k, strings.Join(res.Header[k], "; "))
 	}
 	resstr = fmt.Sprintf(resstr + "\n")
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(res.Body)
-	resstr = fmt.Sprintf(resstr+"[Body]\n%s\n", buf.String())
+	//buf := new(bytes.Buffer)
+	//buf.ReadFrom(res.Body)
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "Cannot read Body"
+	}
+	//resstr = fmt.Sprintf(resstr+"[Body]\n%s\n", buf.String())
+	resstr = fmt.Sprintf(resstr+"[Body]\n%s\n", string(b))
 	return resstr
 }
 
