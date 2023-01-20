@@ -118,7 +118,7 @@ func CreateResponseText(res *http.Response) string {
 	//buf.ReadFrom(res.Body)
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return "Cannot read Body"
+		return err.Error()
 	}
 	//resstr = fmt.Sprintf(resstr+"[Body]\n%s\n", buf.String())
 	resstr = fmt.Sprintf(resstr+"[Body]\n%s\n", string(b))
