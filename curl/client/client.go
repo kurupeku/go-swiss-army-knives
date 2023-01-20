@@ -107,9 +107,9 @@ func CreateRequestText(req *http.Request) string {
 // TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 func CreateResponseText(res *http.Response) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	resstr := fmt.Sprintf("\n===Response===\n[Status] %s\n[Headers]", strings.Split(res.Status, " ")[0])
+	resstr := fmt.Sprintf("\n===Response===\n[Status] %d\n[Headers]", res.StatusCode)
 	for _, k := range sortedKeys(res.Header) {
-		resstr = fmt.Sprintf(resstr+"\n  %s: %s", k, res.Header[k][0])
+		resstr = fmt.Sprintf(resstr+"\n  %s: %s", k, strings.Join(res.Header[k], "; "))
 	}
 	resstr = fmt.Sprintf(resstr + "\n")
 	buf := new(bytes.Buffer)
