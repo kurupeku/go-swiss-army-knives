@@ -4,6 +4,7 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"cgrep/errors"
 	"cgrep/result"
 	"cgrep/search"
 	"io"
@@ -32,7 +33,7 @@ Args:
 			return err
 		}
 
-		if err := result.Error(); err != nil {
+		if err := errors.Error(); err != nil {
 			return err
 		}
 
@@ -52,14 +53,15 @@ func ExecSearch(regexpWord string) error {
 		return err
 	}
 
-	s, err := search.New(fullPath, re)
+	wg := new(sync.WaitGroup)
+
+	s, err := search.New(wg, fullPath, re)
 	if err != nil {
 		return err
 	}
 
-	var wg = new(sync.WaitGroup)
 	wg.Add(1)
-	go s.Search(wg)
+	go s.Search()
 	wg.Wait()
 
 	return nil

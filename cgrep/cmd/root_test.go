@@ -48,7 +48,7 @@ func TestExecSearch(t *testing.T) {
 			defer result.Reset()
 
 			tt.assertion(t, ExecSearch(tt.args.regexpWord))
-			assert.Equal(t, tt.want, result.GlobalResult)
+			assert.Equal(t, tt.want, result.Store)
 		})
 	}
 
@@ -101,7 +101,7 @@ func TestRender(t *testing.T) {
 				withContent = false
 			}()
 
-			result.GlobalResult = tt.set
+			result.Store = tt.set
 			withContent = tt.withContent
 			w := &bytes.Buffer{}
 			Render(w)

@@ -1,4 +1,4 @@
-package result
+package errors
 
 import (
 	"errors"
@@ -36,9 +36,9 @@ func TestError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer ResetError()
+			defer Reset()
 
-			GlobalError.errs = tt.set
+			Store.errs = tt.set
 			tt.assertion(t, Error())
 		})
 	}
@@ -63,10 +63,10 @@ func TestSetError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			defer ResetError()
+			defer Reset()
 
-			SetError(tt.args.err)
-			assert.Equal(t, tt.want, GlobalError)
+			Set(tt.args.err)
+			assert.Equal(t, tt.want, Store)
 		})
 	}
 }
@@ -85,10 +85,10 @@ func TestResetError(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			GlobalError.errs = tt.set
-			ResetError()
+			Store.errs = tt.set
+			Reset()
 
-			assert.Equal(t, tt.want, GlobalError)
+			assert.Equal(t, tt.want, Store)
 		})
 	}
 }

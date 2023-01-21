@@ -44,7 +44,7 @@ func TestSet(t *testing.T) {
 			defer Reset()
 
 			Set(tt.args.fileName, tt.args.txt, tt.args.no)
-			assert.Equal(t, tt.want, GlobalResult)
+			assert.Equal(t, tt.want, Store)
 		})
 	}
 }
@@ -85,7 +85,7 @@ func TestGet(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer Reset()
 
-			GlobalResult = tt.set
+			Store = tt.set
 			assert.Equal(t, tt.want, Get())
 		})
 	}
@@ -147,7 +147,7 @@ func TestRenderWithContent(t *testing.T) {
 			defer Reset()
 
 			buf := bytes.NewBuffer([]byte{})
-			GlobalResult = tt.set
+			Store = tt.set
 			RenderWithContent(buf)
 
 			assert.Equal(t, tt.want, buf.String())
@@ -189,7 +189,7 @@ func TestRenderFiles(t *testing.T) {
 			defer Reset()
 
 			buf := bytes.NewBuffer([]byte{})
-			GlobalResult = tt.set
+			Store = tt.set
 			RenderFiles(buf)
 
 			assert.Equal(t, tt.want, buf.String())
@@ -270,10 +270,10 @@ func TestReset(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			GlobalResult = tt.set
+			Store = tt.set
 			Reset()
 
-			GlobalResult = &Result{Data: make(map[string][]Line, 100)}
+			Store = &Result{Data: make(map[string][]Line, 100)}
 		})
 	}
 }

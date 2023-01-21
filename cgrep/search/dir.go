@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"sync"
 
+	"cgrep/errors"
 	"cgrep/result"
 )
 
@@ -17,18 +18,19 @@ var (
 )
 
 type Dir interface {
-	Search(wg *sync.WaitGroup)
+	Search()
 }
 
 type dir struct {
+	wg            *sync.WaitGroup
 	path          string
 	regexp        *regexp.Regexp
 	subDirs       []Dir
 	fileFullPaths []string
 }
 
-func New(fullPath string, re *regexp.Regexp) (Dir, error) {
-	d := &dir{path: fullPath, regexp: re}
+func New(wg *sync.WaitGroup, fullPath string, re *regexp.Regexp) (Dir, error) {
+	d := &dir{wg: wg, path: fullPath, regexp: re}
 	if d.isGitDri() {
 		return d, nil
 	}
@@ -46,7 +48,7 @@ func (d *dir) Scan() error {
 	for _, f := range fs {
 		path := filepath.Join(d.path, f.Name())
 		if f.IsDir() {
-			subDir, err := New(path, d.regexp)
+			subDir, err := New(d.wg, path, d.regexp)
 			if err != nil {
 				return err
 			}
@@ -60,16 +62,16 @@ func (d *dir) Scan() error {
 	return nil
 }
 
-func (d *dir) Search(wg *sync.WaitGroup) {
-	defer wg.Done()
+func (d *dir) Search() {
+	defer d.wg.Done()
 
 	for _, subDir := range d.subDirs {
-		wg.Add(1)
-		go subDir.Search(wg)
+		d.wg.Add(1)
+		go subDir.Search()
 	}
 
 	if err := d.GrepFiles(); err != nil {
-		result.SetError(err)
+		errors.Set(err)
 	}
 }
 

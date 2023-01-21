@@ -20,19 +20,24 @@ var (
 )
 
 type testMockDir struct {
+	wg     *sync.WaitGroup
 	called bool
 }
 
-func (d *testMockDir) Search(wg *sync.WaitGroup) {
-	defer wg.Done()
+func (d *testMockDir) Search() {
+	defer d.wg.Done()
 	d.called = true
 }
 
 func TestNew(t *testing.T) {
 	type args struct {
+		wg       *sync.WaitGroup
 		fullPath string
 		re       *regexp.Regexp
 	}
+
+	wg := new(sync.WaitGroup)
+
 	tests := []struct {
 		name      string
 		args      args
@@ -42,14 +47,17 @@ func TestNew(t *testing.T) {
 		{
 			name: "Success",
 			args: args{
+				wg:       wg,
 				fullPath: testDirPath,
 				re:       testRegExp1,
 			},
 			want: &dir{
+				wg:     wg,
 				path:   testDirPath,
 				regexp: testRegExp1,
 				subDirs: []Dir{
 					&dir{
+						wg:            wg,
 						path:          testSubDirPath,
 						regexp:        testRegExp1,
 						subDirs:       nil,
@@ -63,7 +71,7 @@ func TestNew(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := New(tt.args.fullPath, tt.args.re)
+			got, err := New(tt.args.wg, tt.args.fullPath, tt.args.re)
 			tt.assertion(t, err)
 			assert.Equal(t, tt.want, got)
 		})
@@ -72,11 +80,13 @@ func TestNew(t *testing.T) {
 
 func Test_dir_Scan(t *testing.T) {
 	type fields struct {
+		wg            *sync.WaitGroup
 		path          string
 		regexp        *regexp.Regexp
 		subDirs       []Dir
 		fileFullPaths []string
 	}
+	wg := new(sync.WaitGroup)
 	tests := []struct {
 		name      string
 		fields    fields
@@ -86,14 +96,17 @@ func Test_dir_Scan(t *testing.T) {
 		{
 			name: "Success",
 			fields: fields{
+				wg:     wg,
 				path:   testDirPath,
 				regexp: testRegExp1,
 			},
 			want: &dir{
+				wg:     wg,
 				path:   testDirPath,
 				regexp: testRegExp1,
 				subDirs: []Dir{
 					&dir{
+						wg:            wg,
 						path:          testSubDirPath,
 						regexp:        testRegExp1,
 						subDirs:       nil,
@@ -108,6 +121,7 @@ func Test_dir_Scan(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &dir{
+				wg:            wg,
 				path:          tt.fields.path,
 				regexp:        tt.fields.regexp,
 				subDirs:       tt.fields.subDirs,
@@ -121,13 +135,8 @@ func Test_dir_Scan(t *testing.T) {
 
 func Test_dir_Search(t *testing.T) {
 	type fields struct {
-		path          string
-		regexp        *regexp.Regexp
-		subDirs       []Dir
-		fileFullPaths []string
-	}
-	type args struct {
-		wg *sync.WaitGroup
+		path   string
+		regexp *regexp.Regexp
 	}
 	tests := []struct {
 		name   string
@@ -141,15 +150,6 @@ func Test_dir_Search(t *testing.T) {
 			fields: fields{
 				path:   testDirPath,
 				regexp: testRegExp1,
-				subDirs: []Dir{
-					&dir{
-						path:          testSubDirPath,
-						regexp:        testRegExp1,
-						subDirs:       []Dir{},
-						fileFullPaths: []string{testSubFilePath},
-					},
-				},
-				fileFullPaths: []string{testFilePath},
 			},
 			setup: func(r *result.Result) {
 				r.Data = make(map[string][]result.Line, 1)
@@ -166,15 +166,6 @@ func Test_dir_Search(t *testing.T) {
 			fields: fields{
 				path:   testDirPath,
 				regexp: testRegExp2,
-				subDirs: []Dir{
-					&dir{
-						path:          testSubDirPath,
-						regexp:        testRegExp2,
-						subDirs:       []Dir{},
-						fileFullPaths: []string{testSubFilePath},
-					},
-				},
-				fileFullPaths: []string{testFilePath},
 			},
 			setup: func(r *result.Result) {
 				r.Data = make(map[string][]result.Line, 1)
@@ -187,7 +178,7 @@ func Test_dir_Search(t *testing.T) {
 		},
 		{
 			name:   "No matches",
-			fields: fields{path: testDirPath, regexp: regexp.MustCompile("_3"), subDirs: nil, fileFullPaths: []string{testFilePath}},
+			fields: fields{path: testDirPath, regexp: regexp.MustCompile("_3")},
 			want:   &result.Result{Data: make(map[string][]result.Line)},
 		},
 	}
@@ -195,25 +186,25 @@ func Test_dir_Search(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer result.Reset()
 
-			d := &dir{
-				path:          tt.fields.path,
-				regexp:        tt.fields.regexp,
-				subDirs:       tt.fields.subDirs,
-				fileFullPaths: tt.fields.fileFullPaths,
+			wg := new(sync.WaitGroup)
+			d, err := New(wg, tt.fields.path, tt.fields.regexp)
+			if err != nil {
+				t.Fatal(err)
 			}
+
 			if tt.setup != nil {
 				tt.setup(tt.want)
 			}
-			if tt.subDir != nil {
-				d.subDirs = append(d.subDirs, tt.subDir)
+			mockedSubDir := &testMockDir{wg: wg}
+			if dd, ok := d.(*dir); ok {
+				dd.subDirs = append(dd.subDirs, mockedSubDir)
 			}
 
-			wg := &sync.WaitGroup{}
 			wg.Add(1)
-			go d.Search(wg)
+			go d.Search()
 			wg.Wait()
 
-			assert.Equal(t, tt.want, result.GlobalResult)
+			assert.Equal(t, tt.want, result.Store)
 			if tt.subDir != nil {
 				assert.True(t, tt.subDir.called)
 			}
@@ -271,7 +262,7 @@ func Test_dir_GrepFiles(t *testing.T) {
 			}
 
 			tt.assertion(t, d.GrepFiles())
-			assert.Equal(t, tt.want, result.GlobalResult)
+			assert.Equal(t, tt.want, result.Store)
 			result.Reset()
 		})
 	}

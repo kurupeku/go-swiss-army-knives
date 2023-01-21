@@ -17,36 +17,36 @@ type Result struct {
 	Data map[string][]Line
 }
 
-var GlobalResult = &Result{Data: make(map[string][]Line, 100)}
+var Store = &Result{Data: make(map[string][]Line, 100)}
 
 func Set(fileName, txt string, no int) {
-	GlobalResult.Lock()
-	defer GlobalResult.Unlock()
+	Store.Lock()
+	defer Store.Unlock()
 
-	if _, ok := GlobalResult.Data[fileName]; !ok {
-		GlobalResult.Data[fileName] = make([]Line, 0, 10)
+	if _, ok := Store.Data[fileName]; !ok {
+		Store.Data[fileName] = make([]Line, 0, 10)
 	}
-	GlobalResult.Data[fileName] = append(GlobalResult.Data[fileName], Line{txt, no})
+	Store.Data[fileName] = append(Store.Data[fileName], Line{txt, no})
 }
 
 func Get() *Result {
-	return GlobalResult
+	return Store
 }
 
 func RenderWithContent(w io.Writer) {
-	for i, fName := range GlobalResult.Files() {
+	for i, fName := range Store.Files() {
 		if i > 0 {
 			fmt.Fprintln(w, "")
 		}
 		fmt.Fprintln(w, fName)
-		for _, l := range GlobalResult.Data[fName] {
+		for _, l := range Store.Data[fName] {
 			fmt.Fprintf(w, "%d: %s\n", l.No, l.Text)
 		}
 	}
 }
 
 func RenderFiles(w io.Writer) {
-	for _, fName := range GlobalResult.Files() {
+	for _, fName := range Store.Files() {
 		fmt.Fprintln(w, fName)
 	}
 }
@@ -62,5 +62,5 @@ func (r *Result) Files() []string {
 }
 
 func Reset() {
-	GlobalResult = &Result{Data: make(map[string][]Line, 100)}
+	Store = &Result{Data: make(map[string][]Line, 100)}
 }
