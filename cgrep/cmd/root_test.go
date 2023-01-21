@@ -6,14 +6,20 @@ package cmd
 import (
 	"bytes"
 	"cgrep/result"
+	"path/filepath"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	testDirPath, _ = filepath.Abs("../testdata")
+)
+
 func TestExecSearch(t *testing.T) {
 	type args struct {
+		fullPath   string
 		regexpWord string
 	}
 	dir = "../testdata"
@@ -29,7 +35,10 @@ func TestExecSearch(t *testing.T) {
 	}{
 		{
 			name: "Matched",
-			args: args{regexpWord: `_1\-\d`},
+			args: args{
+				fullPath:   testDirPath,
+				regexpWord: `_1\-\d`,
+			},
 			want: &result.Result{
 				Mutex: sync.Mutex{},
 				Data: map[string][]result.Line{
@@ -47,7 +56,7 @@ func TestExecSearch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			defer result.Reset()
 
-			tt.assertion(t, ExecSearch(tt.args.regexpWord))
+			tt.assertion(t, ExecSearch(tt.args.fullPath, tt.args.regexpWord))
 			assert.Equal(t, tt.want, result.Store)
 		})
 	}

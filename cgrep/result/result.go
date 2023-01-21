@@ -15,6 +15,7 @@ type Line struct {
 type Result struct {
 	sync.Mutex
 	Data map[string][]Line
+	max  int
 }
 
 var Store = &Result{Data: make(map[string][]Line, 100)}
@@ -33,6 +34,12 @@ func Get() *Result {
 	return Store
 }
 
+func RenderFiles(w io.Writer) {
+	for _, fName := range Store.Files() {
+		fmt.Fprintln(w, fName)
+	}
+}
+
 func RenderWithContent(w io.Writer) {
 	for i, fName := range Store.Files() {
 		if i > 0 {
@@ -42,12 +49,6 @@ func RenderWithContent(w io.Writer) {
 		for _, l := range Store.Data[fName] {
 			fmt.Fprintf(w, "%d: %s\n", l.No, l.Text)
 		}
-	}
-}
-
-func RenderFiles(w io.Writer) {
-	for _, fName := range Store.Files() {
-		fmt.Fprintln(w, fName)
 	}
 }
 

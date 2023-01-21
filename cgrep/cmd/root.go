@@ -29,7 +29,12 @@ Args:
   A search string that can be compiled as a regular expression`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if err := ExecSearch(args[0]); err != nil {
+		fullPath, err := filepath.Abs(dir)
+		if err != nil {
+			return err
+		}
+
+		if err := ExecSearch(fullPath, args[0]); err != nil {
 			return err
 		}
 
@@ -42,12 +47,7 @@ Args:
 	},
 }
 
-func ExecSearch(regexpWord string) error {
-	fullPath, err := filepath.Abs(dir)
-	if err != nil {
-		return err
-	}
-
+func ExecSearch(fullPath, regexpWord string) error {
 	re, err := regexp.Compile(regexpWord)
 	if err != nil {
 		return err
