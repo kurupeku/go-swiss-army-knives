@@ -155,7 +155,7 @@ func Test_dir_Search(t *testing.T) {
 				r.Data = make(map[string][]result.Line, 1)
 				r.Data["../testdata/text.txt"] = []result.Line{
 					{Text: "sample_text_1-1", No: 1},
-					{Text: "sample_text_1-2", No: 2},
+					{Text: "  sample_text_1-2", No: 2},
 					{Text: "sample_text_1-3", No: 3},
 				}
 			},
@@ -233,7 +233,7 @@ func Test_dir_GrepFiles(t *testing.T) {
 				r.Data = make(map[string][]result.Line, 1)
 				r.Data["../testdata/text.txt"] = []result.Line{
 					{Text: "sample_text_1-1", No: 1},
-					{Text: "sample_text_1-2", No: 2},
+					{Text: "  sample_text_1-2", No: 2},
 					{Text: "sample_text_1-3", No: 3},
 				}
 			},

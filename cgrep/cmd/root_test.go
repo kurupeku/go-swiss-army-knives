@@ -44,7 +44,7 @@ func TestExecSearch(t *testing.T) {
 				Data: map[string][]result.Line{
 					"../testdata/text.txt": {
 						{Text: "sample_text_1-1", No: 1},
-						{Text: "sample_text_1-2", No: 2},
+						{Text: "  sample_text_1-2", No: 2},
 						{Text: "sample_text_1-3", No: 3},
 					},
 				},
@@ -75,32 +75,32 @@ func TestRender(t *testing.T) {
 			set: &result.Result{
 				Mutex: sync.Mutex{},
 				Data: map[string][]result.Line{
-					"filename1": {},
-					"filename2": {},
+					"filename1":     {},
+					"dir/filename2": {},
 				},
 			},
 			withContent: false,
-			wantW:       "filename1\nfilename2\n",
+			wantW:       "dir/filename2\nfilename1\n",
 		},
 		{
 			name: "With content",
 			set: &result.Result{
 				Mutex: sync.Mutex{},
 				Data: map[string][]result.Line{
-					"filename1": {
+					"dir/filename1": {
 						{Text: "sample_text_1-1", No: 1},
-						{Text: "sample_text_1-2", No: 2},
+						{Text: "  sample_text_1-2", No: 2},
 						{Text: "sample_text_1-3", No: 3},
 					},
 					"filename2": {
 						{Text: "sample_text_2-1", No: 1},
-						{Text: "sample_text_2-2", No: 2},
+						{Text: "  sample_text_2-2", No: 2},
 						{Text: "sample_text_2-3", No: 3},
 					},
 				},
 			},
 			withContent: true,
-			wantW:       "filename1\n1: sample_text_1-1\n2: sample_text_1-2\n3: sample_text_1-3\n\nfilename2\n1: sample_text_2-1\n2: sample_text_2-2\n3: sample_text_2-3\n",
+			wantW:       "dir/filename1\n1: sample_text_1-1\n2:   sample_text_1-2\n3: sample_text_1-3\n\nfilename2\n1: sample_text_2-1\n2:   sample_text_2-2\n3: sample_text_2-3\n",
 		},
 	}
 	for _, tt := range tests {

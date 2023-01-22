@@ -49,48 +49,6 @@ func TestSet(t *testing.T) {
 	}
 }
 
-func TestGet(t *testing.T) {
-	tests := []struct {
-		name string
-		set  *Result
-		want *Result
-	}{
-		{
-			name: "Success",
-			set: &Result{
-				Mutex: sync.Mutex{},
-				Data: map[string][]Line{
-					"filename": {
-						{
-							Text: "text",
-							No:   1,
-						},
-					},
-				},
-			},
-			want: &Result{
-				Mutex: sync.Mutex{},
-				Data: map[string][]Line{
-					"filename": {
-						{
-							Text: "text",
-							No:   1,
-						},
-					},
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			defer Reset()
-
-			Store = tt.set
-			assert.Equal(t, tt.want, Get())
-		})
-	}
-}
-
 func TestRenderWithContent(t *testing.T) {
 	tests := []struct {
 		name string
@@ -123,11 +81,11 @@ func TestRenderWithContent(t *testing.T) {
 							No:   1,
 						},
 						{
-							Text: "text2",
+							Text: "  text2",
 							No:   2,
 						},
 					},
-					"filename2": {
+					"dir/filename2": {
 						{
 							Text: "text3",
 							No:   3,
@@ -139,7 +97,7 @@ func TestRenderWithContent(t *testing.T) {
 					},
 				},
 			},
-			want: "filename1\n1: text1\n2: text2\n\nfilename2\n3: text3\n4: text4\n",
+			want: "dir/filename2\n3: text3\n4: text4\n\nfilename1\n1: text1\n2:   text2\n",
 		},
 	}
 	for _, tt := range tests {
