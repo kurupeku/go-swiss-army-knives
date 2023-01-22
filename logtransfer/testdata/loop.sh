@@ -1,6 +1,6 @@
 #!/bin/sh
 
 while true; do
-  date
+  echo "printed log at $(date)"
   sleep 1
 done
