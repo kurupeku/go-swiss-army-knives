@@ -1,6 +1,8 @@
 package client
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -118,8 +120,38 @@ func (c *HttpClient) Execute() (string, string, error) {
 // TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
-	return nil, nil, nil
+
+	// https://pkg.go.dev/net/http#NewRequest
+	// https://pkg.go.dev/net/http#Request
+	// https://golangstart.com/go_post/
+	//   # bodyをreqが扱える形に変換
+	data, _ := json.Marshal(c.requestBody)
+	//   # http.NewRequest で struct http.Requestの初期化(値の代入)
+	req, err := http.NewRequest(c.method, c.url.String(), bytes.NewBuffer(data))
+	if err != nil {
+		return nil, nil, err
+	}
+	//   # headerを順繰りに追加
+	for k, v := range c.requestHeader {
+		req.Header.Add(k, v)
+	}
+
+	// https://pkg.go.dev/net/http#Client.Do
+	// https://golangstart.com/go_http_get/
+	// # respは (*Client)Doで受ける。ので、*Clientの初期化(生成)が必要らしい (よくわからない。。)
+	client := new(http.Client)
+	// #
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fmt.Printf("Request: \n  %T\n  %v\n\n", req, req)
+	fmt.Printf("Response:\n  %T\n  %v\n\n", resp, resp)
+	return req, resp, nil
 }
+
+// https://pkg.go.dev/net/http#Request
 
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
