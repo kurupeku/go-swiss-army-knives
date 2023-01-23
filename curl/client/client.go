@@ -35,23 +35,23 @@ func NewHttpClient(
 ) (*HttpClient, error) {
 	// TODO: 1 週目：HTTP 通信用クライアントを構築
 	newHC := HttpClient{}
-	url, err := url.ParseRequestURI(rawurl)
+	u, err := url.ParseRequestURI(rawurl)
 	if err != nil {
 		return nil, errors.New("URLが不正なフォーマットです。")
 	}
-	newHC.url = url
+	newHC.url = u
 	newHC.method = method
+	newHC.requestHeader = make(map[string]string)
+	for _, header := range customHeaders {
+		parts := strings.SplitN(header, ": ", 2)
+		key := parts[0]
+		value := parts[1]
+		newHC.requestHeader[key] = value
+	}
 
 	switch method {
 	case "GET", "DELETE":
 		newHC.requestBody = nil
-		newHC.requestHeader = make(map[string]string)
-		for _, header := range customHeaders {
-			parts := strings.SplitN(header, ": ", 2)
-			key := parts[0]
-			value := parts[1]
-			newHC.requestHeader[key] = value
-		}
 		delete(newHC.requestHeader, "Content-Type")
 
 	case "POST", "PUT", "PATCH":
@@ -59,13 +59,6 @@ func NewHttpClient(
 			return nil, errors.New("dataが空です。")
 		}
 		newHC.requestBody = &data
-		newHC.requestHeader = make(map[string]string)
-		for _, header := range customHeaders {
-			parts := strings.SplitN(header, ": ", 2)
-			key := parts[0]
-			value := parts[1]
-			newHC.requestHeader[key] = value
-		}
 		newHC.requestHeader["Content-Type"] = "application/json"
 	}
 
@@ -87,7 +80,30 @@ func (c *HttpClient) Execute() (string, string, error) {
 // TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
-	return nil, nil, nil
+	var httpReq *http.Request
+	var err error
+
+	if c.requestBody != nil {
+		httpReq, err = http.NewRequest(c.method, c.url.String(), strings.NewReader(*c.requestBody))
+	} else {
+		httpReq, err = http.NewRequest(c.method, c.url.String(), nil)
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for key, value := range c.requestHeader {
+		httpReq.Header.Add(key, value)
+	}
+
+	client := &http.Client{}
+	httpRes, err := client.Do(httpReq)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return httpReq, httpRes, err
+
 }
 
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
