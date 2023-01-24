@@ -27,13 +27,13 @@ tasks:
     desc: Execute test at cgrep package
     dir: ./cgrep
     cmds:
-      - go test -v ./...
+      - go test -v -timeout 10s ./...
 
   test_cgrep_fn:
     desc: Execute test only single function at cgrep package
     dir: ./cgrep
     cmds:
-      - go test -v -run {{.CLI_ARGS}} ./...
+      - go test -v -timeout 10s -run {{.CLI_ARGS}} ./...
     silent: true
 
   build_cgrep:
@@ -47,14 +47,14 @@ tasks:
     desc: Execute test at logtransfer package
     dir: ./logtransfer
     cmds:
-      - go test -v ./...
+      - go test -v -timeout 10s ./...
     silent: true
 
   test_lt_fn:
     desc: Execute test only single function at logtransfer package
     dir: ./logtransfer
     cmds:
-      - go test -v -run {{.CLI_ARGS}} ./...
+      - go test -v -timeout 10s -run {{.CLI_ARGS}} ./...
     silent: true
 
   build_lt:
