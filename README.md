@@ -42,6 +42,7 @@ choco install go-task
 | Tool          | Desc                              |
 | :------------ | :-------------------------------- |
 | `curl`        | [README](./curl/README.md)        |
+| `cgrep`       | [README](./cgrep/README.md)       |
 | `logtransfer` | [README](./logtransfer/README.md) |
 
 ## Test
@@ -52,12 +53,14 @@ choco install go-task
 
 ### `curl` パッケージ
 
-| Task                | Args             | Desc                                                                                     |
-| :------------------ | :--------------- | :--------------------------------------------------------------------------------------- |
-| `task test_curl`    | -                | `curl` パッケージ配下のテストをすべて実行します                                          |
-| `task test_curl_fn` | 関数・メソッド名 | `curl` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します        |
-| `task test_lt`      | -                | `logtransfer` パッケージ配下のテストをすべて実行します                                   |
-| `task test_lt_fn`   | 関数・メソッド名 | `logtransfer` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します |
+| Task                 | Args             | Desc                                                                                     |
+| :------------------- | :--------------- | :--------------------------------------------------------------------------------------- |
+| `task test_curl`     | -                | `curl` パッケージ配下のテストをすべて実行します                                          |
+| `task test_curl_fn`  | 関数・メソッド名 | `curl` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します        |
+| `task test_cgrep`    | -                | `cgrep` パッケージ配下のテストをすべて実行します                                         |
+| `task test_cgrep_fn` | 関数・メソッド名 | `cgrep` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します       |
+| `task test_lt`       | -                | `logtransfer` パッケージ配下のテストをすべて実行します                                   |
+| `task test_lt_fn`    | 関数・メソッド名 | `logtransfer` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します |
 
 ## Build
 
@@ -66,10 +69,11 @@ choco install go-task
 
 各ツールのビルド用タスクおよびバイナリ名は以下のとおりです。
 
-| Tool          | Task              | binary  |
-| :------------ | :---------------- | :------ |
-| `curl`        | `task build_curl` | `scurl` |
-| `logtransfer` | `task build_lt`   | `lt`    |
+| Tool          | Task               | binary  |
+| :------------ | :----------------- | :------ |
+| `curl`        | `task build_curl`  | `scurl` |
+| `cgrep`       | `task build_cgrep` | `cgrep` |
+| `logtransfer` | `task build_lt`    | `lt`    |
 
 バイナリは各ツールのルートディレクトリ（go.mod があるところ）に出力されます。
 
