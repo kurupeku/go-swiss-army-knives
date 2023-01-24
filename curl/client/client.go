@@ -2,6 +2,8 @@ package client
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"sort"
@@ -109,13 +111,40 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	reqText := "\n===Request===\n"
+	reqText += fmt.Sprintf("[URL] %s\n", req.URL.String())
+	reqText += fmt.Sprintf("[Method] %s\n", req.Method)
+	reqText += "[Headers]\n"
+
+	sortHeader := sortedKeys(req.Header)
+	for _, key := range sortHeader {
+		for _, value := range req.Header[key] {
+			reqText += fmt.Sprintf("  %s: %s\n", key, value)
+		}
+	}
+
+	return reqText
 }
 
 // TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 func CreateResponseText(res *http.Response) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	resText := "\n===Response===\n"
+	resText += fmt.Sprintf("[Status] %d\n", res.StatusCode)
+	resText += "[Headers]\n"
+
+	sortHeader := sortedKeys(res.Header)
+	for _, key := range sortHeader {
+		for _, value := range res.Header[key] {
+			resText += fmt.Sprintf("  %s: %s\n", key, value)
+		}
+	}
+
+	resText += "[Body]\n"
+	resBody, _ := ioutil.ReadAll(res.Body)
+	resText += string(resBody) + "\n"
+
+	return resText
 }
 
 // http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数
