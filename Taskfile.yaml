@@ -22,3 +22,44 @@ tasks:
     cmds:
       - go build -o scurl main.go
     silent: true
+
+  test_cgrep:
+    desc: Execute test at cgrep package
+    dir: ./cgrep
+    cmds:
+      - go test -v -timeout 10s ./...
+
+  test_cgrep_fn:
+    desc: Execute test only single function at cgrep package
+    dir: ./cgrep
+    cmds:
+      - go test -v -timeout 10s -run {{.CLI_ARGS}} ./...
+    silent: true
+
+  build_cgrep:
+    desc: Build cgrep cli (for local OS and ARCH)
+    dir: ./cgrep
+    cmds:
+      - go build -o cgrep main.go
+    silent: true
+
+  test_lt:
+    desc: Execute test at logtransfer package
+    dir: ./logtransfer
+    cmds:
+      - go test -v -timeout 10s ./...
+    silent: true
+
+  test_lt_fn:
+    desc: Execute test only single function at logtransfer package
+    dir: ./logtransfer
+    cmds:
+      - go test -v -timeout 10s -run {{.CLI_ARGS}} ./...
+    silent: true
+
+  build_lt:
+    desc: Build logtransfer cli as lt (for local OS and ARCH)
+    dir: ./logtransfer
+    cmds:
+      - go build -o lt main.go
+    silent: true
