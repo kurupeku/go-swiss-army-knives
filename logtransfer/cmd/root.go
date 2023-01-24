@@ -56,7 +56,7 @@ e.g ) logtransfer https://sample.com sh ./sample.sh`,
 // TODO: シグナル（SIGTERM など）が呼ばれた際に、それを検知してキャンセル処理が走る context.Context を用意する
 // TODO: context.CancelFunc も同時に返す
 func NewCtx() (context.Context, context.CancelFunc) {
-	// TODO: 実装
+	// TODO: 3 週目：1 ~ 2 週目の処理を別スレッドで実行しつつ、シグナルを受け取った際にそれらを安全に終了させるメイン処理
 	return nil, nil
 }
 
@@ -67,7 +67,7 @@ func NewCtx() (context.Context, context.CancelFunc) {
 // TODO: storage.Load() の実行間隔は定数 timeSpan を利用して渡す
 // TODO: output.Forward() の送信先 URL は引数 u *url.URL を使用して渡す
 func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
-	// TODO: 実装
+	// TODO: 3 週目：1 ~ 2 週目の処理を別スレッドで実行しつつ、シグナルを受け取った際にそれらを安全に終了させるメイン処理
 }
 
 func Execute() {

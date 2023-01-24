@@ -66,7 +66,7 @@ func (d *dir) Scan() error {
 // TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
-	// TODO: 実装
+	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -76,7 +76,7 @@ func (d *dir) Search() {
 // TODO: ファイル名は検索ルートからの相対パスを添えて保存する
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
-	// TODO: 実装
+	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
 	return nil
 }
 

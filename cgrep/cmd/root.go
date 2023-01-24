@@ -49,7 +49,7 @@ Args:
 // TODO: すべての検索処理が終わるまで処理をブロックして完了を待つ
 // TODO: エラー発生時は即時リターンする
 func ExecSearch(fullPath, regexpWord string) error {
-	// TODO: 実装
+	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
 	return nil
 }
 
@@ -57,7 +57,7 @@ func ExecSearch(fullPath, regexpWord string) error {
 // TODO: 標準出力は引数 w io.Writer として渡される想定
 // TODO: グローバル変数 withContent が false の場合はファイル名のみ、 true の場合は内容も出力する
 func Render(w io.Writer) {
-	// TODO: 実装
+	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
 }
 
 func Execute() {
