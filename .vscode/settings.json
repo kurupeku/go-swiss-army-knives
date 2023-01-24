@@ -1,3 +1,12 @@
 {
-  "cSpell.words": ["cmds", "rawurl", "scurl"]
+  "cSpell.words": [
+    "cmds",
+    "errc",
+    "httpmock",
+    "logtransfer",
+    "rawurl",
+    "scurl",
+    "SIGTERM",
+    "stretchr"
+  ]
 }
