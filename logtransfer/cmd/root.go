@@ -4,15 +4,9 @@ import (
 	"context"
 	"errors"
 	"io"
-	"logtransfer/input"
-	"logtransfer/logs"
-	"logtransfer/output"
-	"logtransfer/storage"
 	"net/url"
 	"os"
 	"os/exec"
-	"os/signal"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -62,7 +56,8 @@ e.g ) logtransfer https://sample.com sh ./sample.sh`,
 // TODO: シグナル（SIGTERM など）が呼ばれた際に、それを検知してキャンセル処理が走る context.Context を用意する
 // TODO: context.CancelFunc も同時に返す
 func NewCtx() (context.Context, context.CancelFunc) {
-	return signal.NotifyContext(context.Background(), os.Interrupt)
+	// TODO: 実装
+	return nil, nil
 }
 
 // TODO: すべての処理を goroutine にて発火させる
@@ -72,13 +67,7 @@ func NewCtx() (context.Context, context.CancelFunc) {
 // TODO: storage.Load() の実行間隔は定数 timeSpan を利用して渡す
 // TODO: output.Forward() の送信先 URL は引数 u *url.URL を使用して渡す
 func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
-	var ln, out, errc = make(chan []byte, channelLen), make(chan []byte, channelLen), make(chan error, channelLen)
-
-	go input.Monitor(ctx, ln, errc, r)
-	go storage.Listen(ctx, ln, errc)
-	go storage.Load(ctx, out, errc, timeSpan*time.Second)
-	go output.Forward(ctx, out, errc, u.String())
-	go logs.Error(ctx, errc)
+	// TODO: 実装
 }
 
 func Execute() {

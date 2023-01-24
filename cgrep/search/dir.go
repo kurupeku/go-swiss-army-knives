@@ -1,15 +1,11 @@
 package search
 
 import (
-	"bufio"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sync"
-
-	"cgrep/errors"
-	"cgrep/result"
 )
 
 var (
@@ -70,16 +66,7 @@ func (d *dir) Scan() error {
 // TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
-	defer d.wg.Done()
-
-	for _, subDir := range d.subDirs {
-		d.wg.Add(1)
-		go subDir.Search()
-	}
-
-	if err := d.GrepFiles(); err != nil {
-		errors.Set(err)
-	}
+	// TODO: 実装
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -89,36 +76,7 @@ func (d *dir) Search() {
 // TODO: ファイル名は検索ルートからの相対パスを添えて保存する
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
-	for _, path := range d.fileFullPaths {
-		f, err := os.Open(path)
-		if err != nil {
-			return err
-		}
-		defer func() {
-			f.Close()
-		}()
-
-		var lineNo int
-		scanner := bufio.NewScanner(f)
-		for scanner.Scan() {
-			lineNo++
-			str := scanner.Text()
-			if !d.regexp.MatchString(str) {
-				continue
-			}
-
-			rel, err := relativePath(f)
-			if err != nil {
-				return err
-			}
-
-			result.Set(rel, str, lineNo)
-		}
-		if err := scanner.Err(); err != nil {
-			return err
-		}
-	}
-
+	// TODO: 実装
 	return nil
 }
 

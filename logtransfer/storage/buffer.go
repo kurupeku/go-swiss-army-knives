@@ -3,7 +3,6 @@ package storage
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"time"
 )
 
@@ -15,20 +14,7 @@ var (
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Listen(ctx context.Context, ln chan []byte, errc chan error) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case b, ok := <-ln:
-			if !ok {
-				return
-			}
-			_, err := buf.Write([]byte(string(b) + "\n"))
-			if err != nil {
-				errc <- err
-			}
-		}
-	}
+	// TODO: 実装
 }
 
 // TODO: グローバル変数 buf *bytes.Buffer から一定時間ごとに内容を読み込み、内容を引数 out chan []byte へ送信する
@@ -38,22 +24,5 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration) {
-	tick := time.NewTicker(span)
-	for {
-		select {
-		case <-ctx.Done():
-			close(out)
-			return
-		case <-tick.C:
-			b, err := ioutil.ReadAll(buf)
-			if err != nil {
-				errc <- err
-				continue
-			}
-			if len(b) == 0 {
-				continue
-			}
-			out <- b
-		}
-	}
+	// TODO: 実装
 }
