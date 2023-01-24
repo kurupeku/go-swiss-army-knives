@@ -1,5 +1,7 @@
 {
   "cSpell.words": [
+    "cgrep",
+    "hoge",
     "cmds",
     "errc",
     "httpmock",
@@ -7,6 +9,7 @@
     "rawurl",
     "scurl",
     "SIGTERM",
-    "stretchr"
+    "stretchr",
+    "testdata"
   ]
 }
