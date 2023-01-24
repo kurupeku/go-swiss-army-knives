@@ -112,7 +112,7 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
     - HTTP メソッドが GET,DELETE の場合
       - リクエストボディ(`requestBody`フィールド)は`nil`
       - リクエストヘッダに `Content-Type` が含まれている場合は削除
-    - HTTP メソッドが POST,PUT,DELETE の場合
+    - HTTP メソッドが POST,PUT,PATCH の場合
       - リクエストヘッダの `Content-Type` は"application/json"にする
       - data の値をそのままレスポンスボディ(`requestBody`フィールド)に設定
         - その際、data が空であればエラー
@@ -144,6 +144,8 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
   - 以下の形式で URL, Method, Headers を入れる
     - Headers はスペース 2 つでインデントをつける
     - Headers が複数ある場合は Key が昇順にソートされた状態で表示する
+    - 一つの Key に対して値が複数ある場合は `;<半角スペース>` で区切る
+      - e.g.) `Content-Type: text/html; charset=UTF-8`
     - Headers で表示するリクエストヘッダがなくても、`[Headers]`という行は必ず入れる
 
 ```bash
@@ -161,6 +163,8 @@ $ go run main.go http://example.com -X POST -d '{"id":1}'
   - 以下の形式で Status, Headers, Body を入れる
     - Headers はスペース 2 つでインデントをつける
     - Headers が複数ある場合は Key が昇順にソートされた状態で表示する
+    - 一つの Key に対して値が複数ある場合は `;<半角スペース>` で区切る
+      - e.g.) `Content-Type: text/html; charset=UTF-8`
     - Headers で表示するリクエストヘッダがなくても、`[Headers]`という行は必ず入れる
   - Body はインデントなしで出力し、最後に改行を入れる
     - レスポンスボディが空の場合は、空行を出力する
