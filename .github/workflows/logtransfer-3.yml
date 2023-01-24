@@ -25,7 +25,7 @@ jobs:
         name: Go Test
         working-directory: ./${{ env.APP }}
         run: |
-          go test -v ./cmd/...
+          go test -v -timeout 10s ./cmd/...
 
       - name: Send result
         if: always()
