@@ -1,11 +1,13 @@
 package client
 
 import (
+	"bufio"
 	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -85,12 +87,11 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
 
 	//http.Requestを生成。bodyは無い場合があるのでチェック
-	var b io.Reader
-	if c.requestBody == nil {
-		b = nil
-	} else {
+	var b io.Reader //初期値nil
+	if c.requestBody != nil {
 		b = strings.NewReader(*c.requestBody)
 	}
+
 	req, _ := http.NewRequest(c.method, c.url.String(), b)
 
 	//リクエストヘダーは複数あるはずなので繰り返しセット
@@ -98,8 +99,9 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 		req.Header.Set(k, v)
 	}
 
-	cli := new(http.Client)
+	cli := new(http.Client) //送信する発射台 newを使わないこともできる new初期化した上でポインターになる関数
 	res, err := cli.Do(req)
+
 	//エラーならerr以外何も返さない
 	if err != nil {
 		return nil, nil, err
@@ -111,13 +113,46 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	rs := "\n===Request===\n"
+	rs += "[URL] " + req.URL.String() + "\n"
+	rs += "[Method] " + req.Method + "\n"
+	rs += "[Headers]"
+	keys := sortedKeys(req.Header)
+	var sameKey string
+	for _, key := range keys {
+		if sameKey == key {
+			rs += "; " + req.Header.Get(key)
+		} else {
+			rs += "\n  " + key + ": " + req.Header.Get(key)
+		}
+	}
+	rs += "\n"
+	return rs
 }
 
 // TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 func CreateResponseText(res *http.Response) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	rs := "\n===Response===\n"
+	rs += "[Status] " + strconv.Itoa(res.StatusCode) + "\n"
+	rs += "[Headers]"
+	keys := sortedKeys(res.Header)
+	var sameKey string
+	for _, key := range keys {
+		if sameKey == key {
+			rs += "; " + res.Header.Get(key)
+		} else {
+			rs += "\n  " + key + ": " + res.Header.Get(key)
+		}
+	}
+
+	rs += "\n[Body]\n"
+	s := bufio.NewScanner(res.Body)
+	for s.Scan() {
+		rs += s.Text()
+	}
+	rs += "\n"
+	return rs
 }
 
 // http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数
