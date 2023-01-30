@@ -1,8 +1,6 @@
 package client
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -126,9 +124,12 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// https://pkg.go.dev/net/http#Request
 	// https://golangstart.com/go_post/
 	//   # bodyをreqが扱える形に変換
-	data, _ := json.Marshal(c.requestBody)
-	//   # http.NewRequest で struct http.Requestの初期化(値の代入)
-	req, err := http.NewRequest(c.method, c.url.String(), bytes.NewBuffer(data))
+	var b io.Reader //初期値nil
+	if c.requestBody != nil {
+		b = strings.NewReader(*c.requestBody)
+	}
+
+	req, err := http.NewRequest(c.method, c.url.String(), b)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -152,8 +153,6 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	return req, resp, nil
 }
 
-// https://pkg.go.dev/net/http#Request
-
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
@@ -164,6 +163,7 @@ func CreateRequestText(req *http.Request) string {
 	r += "[Headers]\n"
 	h := sortedKeys(req.Header)
 	for _, v := range h {
+		// vはmap"res.Header"のkey , res.Headerのvalueもなんかのmapなので[0]で対象を抜く
 		r += fmt.Sprintf("  %s: %s\n", v, req.Header[v][0])
 	}
 
@@ -177,11 +177,13 @@ func CreateResponseText(res *http.Response) string {
 	r := "\n===Response===\n"
 	p := strings.Split(res.Status, " ")
 	r += fmt.Sprintf("[Status] %s\n", p[0])
+	// Headers
 	r += "[Headers]\n"
 	h := sortedKeys(res.Header)
 	for _, v := range h {
 		r += fmt.Sprintf("  %s: %s\n", v, res.Header[v][0])
 	}
+	// Body
 	r += "[Body]\n"
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
