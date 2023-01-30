@@ -156,7 +156,17 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	// https://pkg.go.dev/net/http#Request
+	r := "===Request===\n"
+	r += fmt.Sprintf("[URL] %s\n", req.URL)
+	r += fmt.Sprintf("[Method] %s\n", req.Method)
+	r += "[Headers]\n"
+	h := sortedKeys(req.Header)
+	for k, v := range h {
+		req.Header.Add(k, v)
+		r += fmt.Sprintf("  %s %s\n", k, v)
+	}
+	return r
 }
 
 // TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
