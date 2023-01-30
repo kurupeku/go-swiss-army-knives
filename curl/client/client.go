@@ -1,11 +1,13 @@
 package client
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -107,16 +109,93 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	return req, response, err
 }
 
+func createRequestTitle() string {
+	return "\n===Request===\n"
+}
+
+func createRequestUrlText(url string) string {
+	return "[URL] " + url + "\n"
+}
+
+func createRequestMethodText(method string) string {
+	return "[Method] " + method + "\n"
+}
+
+func getSortedKeys(header map[string][]string) []string {
+	var keys []string
+	for key := range header {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func getSortedHeaderByKey(header map[string][]string) map[string][]string {
+	sortedHeader := map[string][]string{}
+	for _, key := range getSortedKeys(header) {
+		sortedHeader[key] = header[key]
+	}
+	return sortedHeader
+}
+
+func createHeaderContentText(headerName string, values []string) string {
+	headerContentText := ""
+	for _, contents := range values {
+		// ヘッダータイトル
+		headerContentText += "  " + headerName + ": "
+		// ヘッダー詳細
+		contents_array := strings.Split(contents, ",")
+		headerContentText += contents_array[0]
+		for _, content := range contents_array[1:] {
+			headerContentText += ";" + content
+		}
+		// 改行
+		headerContentText += "\n"
+	}
+	return headerContentText
+}
+
+func createHeaderText(header map[string][]string) string {
+	headerText := "[Headers]\n"
+	for headerName, values := range getSortedHeaderByKey(header) {
+		headerText += createHeaderContentText(headerName, values)
+	}
+	return headerText
+}
+
+
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
-	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	var requestText string
+	requestText = createRequestTitle()
+	requestText += createRequestUrlText(req.URL.String())
+	requestText += createRequestMethodText(req.Method)
+	requestText += createHeaderText(req.Header)
+	return requestText
+}
+
+func createResponseTitle() string {
+	return "\n===Response===\n"
+}
+
+func createResponseStatusText(status string) string {
+	return "[Status] " + status + "\n"
+}
+
+func createResponseBodyText(body io.ReadCloser) string {
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(body)
+	return "[Body]\n" + buf.String() + "\n"
 }
 
 // TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 func CreateResponseText(res *http.Response) string {
-	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	var responseText string
+	responseText = createResponseTitle()
+	responseText += createResponseStatusText(strconv.Itoa(res.StatusCode))
+	responseText += createHeaderText(res.Header)
+	responseText += createResponseBodyText(res.Body)
+	return responseText
 }
 
 // http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数
