@@ -110,16 +110,87 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	return req, res, nil
 }
 
-// TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
-func CreateRequestText(req *http.Request) string {
-	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+func addIndent() string {
+	return "\n"
 }
 
-// TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
+func headlineReq() string {
+	return "===Request===" + addIndent()
+}
+
+func headlineRes() string {
+	return "===Response===" + addIndent()
+}
+
+func addURL(u *url.URL) string {
+	return "[URL] " + u.String() + addIndent()
+}
+
+func addMethods(m string) string {
+	return "[Method] " + m + addIndent()
+}
+
+func addHeaders(m map[string][]string) string {
+	s := "[Headers]" + addIndent()
+
+	keys := sortedKeys(m)
+	for _, vm := range keys {
+		s += "  " + vm + ": "
+		for i, va := range m[vm] {
+			s += va
+			if i == len(m[vm])-1 {
+				break
+			}
+			s += "; "
+		}
+		s += addIndent()
+	}
+
+	return s
+}
+
+func addBody(res *http.Response) string {
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "io.Read Error Happened"
+	}
+
+	s := "[Body]" + addIndent()
+	sb := string(b)
+	if sb != "" {
+		s += sb + addIndent()
+	} else {
+		s += addIndent()
+	}
+
+	return s
+}
+
+func addStatus(s string) string {
+	r := "[Status] " + strings.ReplaceAll(s, " OK", "") + addIndent()
+	return r
+}
+
+func CreateRequestText(req *http.Request) string {
+	s := addIndent()
+	s += headlineReq()
+	s += addURL(req.URL)
+	s += addMethods(req.Method)
+	s += addHeaders(req.Header)
+
+	return s
+}
+
 func CreateResponseText(res *http.Response) string {
-	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	s := addIndent()
+	s += headlineRes()
+	s += addStatus(res.Status)
+	s += addHeaders(res.Header)
+
+	defer res.Body.Close()
+	s += addBody(res)
+
+	return s
 }
 
 // http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数
