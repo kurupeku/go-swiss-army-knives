@@ -118,9 +118,8 @@ func CreateRequestText(req *http.Request) string {
 
 	sortHeader := sortedKeys(req.Header)
 	for _, key := range sortHeader {
-		for _, value := range req.Header[key] {
-			reqText += fmt.Sprintf("  %s: %s\n", key, value)
-		}
+		values := req.Header[key]
+		reqText += fmt.Sprintf("  %s: %s\n", key, strings.Join(values, "; "))
 	}
 
 	return reqText
@@ -135,9 +134,8 @@ func CreateResponseText(res *http.Response) string {
 
 	sortHeader := sortedKeys(res.Header)
 	for _, key := range sortHeader {
-		for _, value := range res.Header[key] {
-			resText += fmt.Sprintf("  %s: %s\n", key, value)
-		}
+		values := res.Header[key]
+		resText += fmt.Sprintf("  %s: %s\n", key, strings.Join(values, "; "))
 	}
 
 	resText += "[Body]\n"
