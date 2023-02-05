@@ -63,3 +63,15 @@ tasks:
     cmds:
       - go build -o lt main.go
     silent: true
+
+  preview_lt:
+    desc: Preview logtransfer cli at local (require docker-compose up)
+    cmds:
+      - go run ./logtransfer/ http://localhost:3000/logs sh ./logtransfer/testdata/loop.sh
+    silent: true
+
+  preview_lt_docker:
+    desc: Preview logtransfer cli in docker container or dev-container (require docker-compose up)
+    cmds:
+      - go run ./logtransfer/ http://browser:3000/logs sh ./logtransfer/testdata/loop.sh
+    silent: true
