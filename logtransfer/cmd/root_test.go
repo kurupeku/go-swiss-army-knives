@@ -59,7 +59,6 @@ func TestStartBackgrounds(t *testing.T) {
 				if assert.Equal(t, tt.lines, string(b)) {
 					return httpmock.NewStringResponse(400, ""), nil
 				}
-
 				return httpmock.NewStringResponse(200, ""), nil
 			})
 
