@@ -1,17 +1,17 @@
 package main
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
+	"golang.org/x/net/websocket"
 	"io"
 	"log"
 	"net/http"
 	"os"
-
-	"golang.org/x/net/websocket"
+	"syscall"
 )
 
-var c = make(chan string, 10)
+var c = make(chan []byte, 10)
 
 func main() {
 	http.Handle("/", http.FileServer(http.Dir("./dist")))
@@ -29,17 +29,17 @@ func msgHandler(ws *websocket.Conn) {
 		_ = ws.Close()
 	}(ws)
 
-	err := websocket.Message.Send(ws, "connect successfully!")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
 	for {
 		select {
 		case msg := <-c:
-			err := websocket.Message.Send(ws, msg)
+			buf := bytes.NewBuffer(msg)
+			err := websocket.Message.Send(ws, buf.String())
+			_, _ = fmt.Fprintf(os.Stdout, "received from channel: \n%s\n", buf.String())
 			if err != nil {
-				_, _ = fmt.Fprintln(os.Stderr, err)
+				_, _ = fmt.Fprintf(os.Stderr, "error on sending: %s\n", err)
+				if err == syscall.EPIPE {
+					continue
+				}
 			}
 		}
 	}
@@ -54,15 +54,12 @@ func receiveLogs(w http.ResponseWriter, r *http.Request) {
 		_ = Body.Close()
 	}(r.Body)
 
-	scanner := bufio.NewScanner(r.Body)
-	for scanner.Scan() {
-		c <- scanner.Text()
-	}
-	if err := scanner.Err(); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = fmt.Fprintln(os.Stderr, err)
-		return
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		_, _ = fmt.Fprintf(os.Stderr, "error on reading body: \n%s\n", err)
 	}
 
+	c <- b
+	_, _ = fmt.Fprintf(os.Stdout, "send to channel: \n%s\n", string(b))
 	w.WriteHeader(http.StatusOK)
 }
