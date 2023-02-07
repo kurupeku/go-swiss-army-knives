@@ -1,7 +1,9 @@
 package client
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"sort"
@@ -41,8 +43,8 @@ func NewHttpClient(
 	// リクエストヘッダ生成
 	mp := make(map[string]string)
 	for _, v := range customHeaders {
-		array := strings.Split(v, ": ")
-		mp[array[0]] = array[1]
+		array := strings.Split(v, ":")
+		mp[strings.TrimSpace(array[0])] = strings.TrimSpace(array[1])
 		array = nil
 	}
 
@@ -84,8 +86,30 @@ func (c *HttpClient) Execute() (string, string, error) {
 // TODO:HTTPリクエストを実行後の*http.Request, *http.Responseを返却
 // TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
-	// TODO: 2 週目：HTTP 通信を実行
-	return nil, nil, nil
+	//HttpClient生成
+	cli := new(http.Client)
+	//リクエストボディ生成
+	var reqBody io.Reader
+	if c.requestBody == nil {
+		//reqBody = nil
+	} else {
+		reqBody = bytes.NewBufferString(*c.requestBody)
+	}
+	//リクエスト生成
+	req, err := http.NewRequest(c.method, c.url.String(), reqBody)
+	if err != nil {
+		return nil, nil, err
+	}
+	//リクエストヘッダをセット
+	for k, v := range c.requestHeader {
+		req.Header.Set(k, v)
+	}
+	//HTTPリクエスト実行
+	res, err := cli.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	return req, res, err
 }
 
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
