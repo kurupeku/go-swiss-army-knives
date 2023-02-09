@@ -63,7 +63,8 @@ func ExecSearch(fullPath, regexpWord string) error {
 	if err != nil {
 		return err
 	}
-	chkdir.Search()
+	wg.Add(1)
+	go chkdir.Search()
 	wg.Wait()
 	return nil
 }
