@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"io"
 	"net/http"
 	"net/url"
 	"sort"
@@ -84,7 +85,26 @@ func (c *HttpClient) Execute() (string, string, error) {
 // TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
-	return nil, nil, nil
+
+	var r io.Reader
+	if c.requestBody != nil {
+		r = strings.NewReader(*c.requestBody)
+	}
+
+	req, err := http.NewRequest(c.method, c.url.String(), r)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for s, v := range c.requestHeader {
+		req.Header.Set(s, v)
+	}
+	client := new(http.Client)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	return req, resp, nil
 }
 
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
