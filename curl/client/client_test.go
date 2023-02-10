@@ -161,7 +161,7 @@ func TestNewHttpClient(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("HttpClientBuilder.Build() = %v, want %v", got, tt.want)
+				t.Errorf("HttpClientBuilder.Build() = %+v, want %+v", got, tt.want)
 			}
 		})
 	}
