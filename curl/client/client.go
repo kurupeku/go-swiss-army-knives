@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -110,13 +111,34 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 // TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	msg := "\n"
+	msg = msg + "===Request===\n"
+	msg = msg + "[URL] " + req.URL.String() + "\n"
+	msg = msg + "[Method] " + req.Method + "\n"
+	msg = msg + "[Headers]" + "\n"
+
+	for _, s := range sortedKeys(req.Header) {
+		msg = msg + "  " + s + ": " + strings.Join(req.Header[s], "; ") + "\n"
+	}
+	fmt.Println(msg)
+	return msg
 }
 
 // TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 func CreateResponseText(res *http.Response) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
-	return ""
+	msg := ""
+	for _, s := range sortedKeys(res.Header) {
+		msg = msg + "  " + s + ": " + strings.Join(res.Header[s], "; ") + "\n"
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return "err"
+	}
+	m := fmt.Sprintf("\n===Response===\n[Status] %d\n[Headers]\n%s[Body]\n%s\n", res.StatusCode, msg, b)
+	//	res.Body
+
+	return m
 }
 
 // http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数
