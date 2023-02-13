@@ -1,6 +1,10 @@
 package search
 
 import (
+	"bufio"
+	"cgrep/errors"
+	"cgrep/result"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -67,6 +71,27 @@ func (d *dir) Scan() error {
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	// 最初のスキャン
+	_, err := New(d.wg, d.path, d.regexp)
+	if err != nil {
+		errors.Set(err)
+	}
+
+	// 並列処理カウンター：-1
+	defer d.wg.Done()
+	// 並列処理開始
+	for _, s := range d.subDirs {
+		// 並列処理カウンター：-1 + 1 = 0
+		d.wg.Add(1)
+		go s.Search()
+		//s.Search()
+		//d.wg.Wait()
+	}
+	d.GrepFiles()
+	if err != nil {
+		errors.Set(err)
+	}
+
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -77,6 +102,47 @@ func (d *dir) Search() {
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	var lineCount int = 0
+	var line string
+	for _, path := range d.fileFullPaths {
+		filepath.Walk(path, func(path string, fileInfo os.FileInfo, err error) error {
+			if err != nil {
+				panic(err)
+			}
+			if fileInfo.IsDir() {
+				return nil
+			}
+			fileIn, err := os.Open(path)
+			if err != nil {
+				errors.Set(err)
+			}
+			defer fileIn.Close()
+
+			scanner := bufio.NewScanner(fileIn)
+
+			for scanner.Scan() {
+				lineCount++
+				line = scanner.Text()
+				matched := d.regexp.MatchString(line)
+				if matched {
+					relPath, err := relativePath(fileIn)
+					if err != nil {
+						errors.Set(err)
+					}
+					result.Set(relPath, line, lineCount)
+				}
+
+				if err == io.EOF {
+					break
+				} else if err != nil {
+					errors.Set(err)
+				}
+
+			}
+			return err
+		})
+
+	}
 	return nil
 }
 
