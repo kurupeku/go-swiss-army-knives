@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"cgrep/errors"
 	"cgrep/result"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -77,16 +76,14 @@ func (d *dir) Search() {
 		errors.Set(err)
 	}
 
-	// 並列処理カウンター：-1
-	defer d.wg.Done()
+	defer d.wg.Done() // 並列処理カウンター：-1
 	// 並列処理開始
 	for _, s := range d.subDirs {
-		// 並列処理カウンター：-1 + 1 = 0
-		d.wg.Add(1)
+		d.wg.Add(1) // 並列処理カウンター：-1 + 1 = 0
 		go s.Search()
 		//s.Search()
-		//d.wg.Wait()
 	}
+	//d.wg.Wait()
 	d.GrepFiles()
 	if err != nil {
 		errors.Set(err)
@@ -104,44 +101,31 @@ func (d *dir) GrepFiles() error {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
 	var lineCount int = 0
 	var line string
+
+	//配列内のファイル(フルパス)を1件ずつ開く
 	for _, path := range d.fileFullPaths {
-		filepath.Walk(path, func(path string, fileInfo os.FileInfo, err error) error {
-			if err != nil {
-				panic(err)
-			}
-			if fileInfo.IsDir() {
-				return nil
-			}
-			fileIn, err := os.Open(path)
-			if err != nil {
-				errors.Set(err)
-			}
-			defer fileIn.Close()
+		file, err := os.Open(path)
+		if err != nil {
+			errors.Set(err)
+		}
+		defer file.Close()
 
-			scanner := bufio.NewScanner(fileIn)
+		//バッファに格納
+		scanner := bufio.NewScanner(file)
 
-			for scanner.Scan() {
-				lineCount++
-				line = scanner.Text()
-				matched := d.regexp.MatchString(line)
-				if matched {
-					relPath, err := relativePath(fileIn)
-					if err != nil {
-						errors.Set(err)
-					}
-					result.Set(relPath, line, lineCount)
-				}
-
-				if err == io.EOF {
-					break
-				} else if err != nil {
+		//ファイル内を1行ずつ読み込み
+		for scanner.Scan() {
+			lineCount++
+			line = scanner.Text()
+			matched := d.regexp.MatchString(line)
+			if matched {
+				relPath, err := relativePath(file) //与えられた正規表現にマッチしたら相対パスに直して
+				if err != nil {
 					errors.Set(err)
 				}
-
+				result.Set(relPath, line, lineCount) //セット
 			}
-			return err
-		})
-
+		}
 	}
 	return nil
 }
