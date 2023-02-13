@@ -1,6 +1,9 @@
 package search
 
 import (
+	"bufio"
+	"cgrep/errors"
+	"cgrep/result"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -66,7 +69,15 @@ func (d *dir) Scan() error {
 // TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
-	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	defer d.wg.Done()
+	for _, sd := range d.subDirs {
+		d.wg.Add(1)
+		go sd.Search()
+	}
+	err := d.GrepFiles()
+	if err != nil {
+		errors.Set(err)
+	}
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -76,8 +87,31 @@ func (d *dir) Search() {
 // TODO: ファイル名は検索ルートからの相対パスを添えて保存する
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
-	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	for _, path := range d.fileFullPaths {
+		fn, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer fn.Close()
+
+		fp, err := relativePath(fn)
+		if err != nil {
+			return err
+		}
+		d.setScanner(fn, fp)
+	}
 	return nil
+}
+
+func (d *dir) setScanner(fileName *os.File, filePath string) {
+	scan := bufio.NewScanner(fileName)
+	c := 1
+	for scan.Scan() {
+		if d.regexp.MatchString(scan.Text()) {
+			result.Set(filePath, scan.Text(), c)
+		}
+		c++
+	}
 }
 
 // 自身が .git ディレクトリであるかを検証するメソッド
