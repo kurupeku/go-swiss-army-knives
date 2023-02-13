@@ -1,6 +1,9 @@
 package search
 
 import (
+	"bufio"
+	"cgrep/result"
+	"cgrep/errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -66,7 +69,18 @@ func (d *dir) Scan() error {
 // TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
-	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	for _, dir := range d.subDirs {
+		dir.Search()
+	}
+	
+	d.wg.Add(1)
+	
+	err := d.GrepFiles()
+	if (err != nil) {
+		errors.Set(err)
+	}
+
+	d.wg.Done()
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -76,7 +90,35 @@ func (d *dir) Search() {
 // TODO: ファイル名は検索ルートからの相対パスを添えて保存する
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
-	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	for _, fileFullPath := range d.fileFullPaths {
+		// ファイルを開く
+		file, err := os.Open(fileFullPath)
+		if err != nil {
+			return err
+		}
+		// 最後にファイルを閉じる
+		defer file.Close()
+
+		// ファイルの内容取得
+		fileScanner := bufio.NewScanner(file)
+		// 行ごとに分割
+		fileScanner.Split(bufio.ScanLines)
+
+		// ファイルの内容を一行ずつ取得
+		lineNo := 0
+		for fileScanner.Scan() {
+			lineNo += 1
+			// 正規表現と一致する場合
+			if (d.regexp.MatchString(fileScanner.Text())) {
+				// ファイル名と一致した行番号と行の文字列を記録
+				fileName, err := relativePath(file)
+				if err != nil {
+					return err
+				}
+				result.Set(fileName, fileScanner.Text(), lineNo)
+			}
+		}
+	}
 	return nil
 }
 
