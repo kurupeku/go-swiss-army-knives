@@ -81,7 +81,6 @@ func (d *dir) Search() {
 	for _, s := range d.subDirs {
 		d.wg.Add(1) // 並列処理カウンター：-1 + 1 = 0
 		go s.Search()
-		//s.Search()
 	}
 	//d.wg.Wait()
 	d.GrepFiles()
