@@ -94,9 +94,9 @@ func (d *dir) GrepFiles() error {
 		if err != nil {
 			return err
 		}
-		defer func() {
+		defer func(f *os.File) {
 			f.Close()
-		}()
+		}(file)
 
 		var lineNo int
 		scanner := bufio.NewScanner(f)
