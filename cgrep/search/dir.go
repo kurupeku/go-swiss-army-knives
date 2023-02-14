@@ -1,6 +1,9 @@
 package search
 
 import (
+	"bufio"
+	"cgrep/errors"
+	"cgrep/result"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -67,6 +70,18 @@ func (d *dir) Scan() error {
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+
+	defer d.wg.Done()
+	err := d.GrepFiles()
+	if err != nil {
+		errors.Set(err)
+	}
+
+	for _, v := range d.subDirs {
+		d.wg.Add(1)
+		go v.Search()
+	}
+
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -77,7 +92,29 @@ func (d *dir) Search() {
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	for _, v := range d.fileFullPaths {
+		f, err := os.Open(v)
+		defer f.Close()
+		if err != nil {
+			return err
+		}
+		fn, err := relativePath(f)
+		if err != nil {
+			return err
+		}
+		sc := bufio.NewScanner(f)
+		i := 0
+		for sc.Scan() {
+			m := d.regexp.MatchString(sc.Text())
+			i++
+			if m {
+				result.Set(fn, sc.Text(), i)
+			}
+		}
+
+	}
 	return nil
+
 }
 
 // 自身が .git ディレクトリであるかを検証するメソッド
