@@ -90,7 +90,7 @@ func (d *dir) Search() {
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
 	for _, path := range d.fileFullPaths {
-		f, err := os.Open(path)
+		file, err := os.Open(path)
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (d *dir) GrepFiles() error {
 				continue
 			}
 
-			rel, err := relativePath(f)
+			rel, err := relativePath(file)
 			if err != nil {
 				return err
 			}
