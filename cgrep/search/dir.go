@@ -100,6 +100,12 @@ func (d *dir) GrepFiles() error {
 			return errors.Error()
 		}
 
+		//defer f.Close()
+
+		defer func(f *os.File) {
+			f.Close()
+		}(f)
+
 		l := bufio.NewScanner(f)
 
 		i := 0
