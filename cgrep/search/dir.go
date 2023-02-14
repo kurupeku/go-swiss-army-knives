@@ -1,10 +1,13 @@
 package search
 
 import (
+	"cgrep/errors"
+	"cgrep/result"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"sync"
 )
 
@@ -67,6 +70,18 @@ func (d *dir) Scan() error {
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	defer d.wg.Done()
+
+	for _, subDir := range d.subDirs {
+		d.wg.Add(1)
+		go subDir.Search()
+	}
+
+	if err := d.GrepFiles(); err != nil {
+		errors.Set(err)
+		return
+	}
+
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -77,6 +92,40 @@ func (d *dir) Search() {
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	for _, filePath := range d.fileFullPaths {
+		// ファイルを開く
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		// ファイルの中身を読み込む
+		fileBody, err := ioutil.ReadAll(file)
+		if err != nil {
+			return err
+		}
+
+		// ファイルの中身に検索用の正規表現が一致しない場合は早期リターン
+		if !d.regexp.Match(fileBody) {
+			return nil
+		}
+
+		// ファイルパスを抽出
+		filePath, err := relativePath(file)
+		if err != nil {
+			return err
+		}
+
+		// ファイル名、行の内容、行番号を result.Set() に渡して保存する
+		for no, txt := range strings.Split(string(fileBody), "\n") {
+			no++
+			if d.regexp.MatchString(txt) {
+				result.Set(filePath, txt, no)
+			}
+		}
+	}
+
 	return nil
 }
 
