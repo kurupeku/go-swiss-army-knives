@@ -94,10 +94,13 @@ func (d *dir) GrepFiles() error {
 		// ファイルを開く
 		file, err := os.Open(fileFullPath)
 		if err != nil {
-			return err
+			errors.Set(err)
+			continue
 		}
 		// 最後にファイルを閉じる
-		defer file.Close()
+		defer func() {
+			file.Close()
+		}()
 
 		// ファイルの内容取得
 		fileScanner := bufio.NewScanner(file)
@@ -113,7 +116,7 @@ func (d *dir) GrepFiles() error {
 				// ファイル名と一致した行番号と行の文字列を記録
 				fileName, err := relativePath(file)
 				if err != nil {
-					return err
+					errors.Set(err)
 				}
 				result.Set(fileName, fileScanner.Text(), lineNo)
 			}
