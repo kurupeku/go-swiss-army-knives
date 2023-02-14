@@ -157,6 +157,8 @@ func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 func CreateRequestText(req *http.Request) string {
 	// TODO: 3 週目：HTTP 通信結果のテキストを構築
 	// https://pkg.go.dev/net/http#Request
+	// template packageを使うとより良い。
+	// += は処理が重いので buffer を使うと良い。(bytes.Buffer)
 	r := "\n===Request===\n"
 	r += fmt.Sprintf("[URL] %s\n", req.URL)
 	r += fmt.Sprintf("[Method] %s\n", req.Method)
@@ -164,6 +166,7 @@ func CreateRequestText(req *http.Request) string {
 	h := sortedKeys(req.Header)
 	for _, v := range h {
 		// vはmap"res.Header"のkey , res.Headerのvalueもなんかのmapなので[0]で対象を抜く
+		// 複数返ってくるパターンあり。 strings join で;区切りで繋げる
 		r += fmt.Sprintf("  %s: %s\n", v, req.Header[v][0])
 	}
 
