@@ -94,7 +94,9 @@ func (d *dir) GrepFiles() error {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
 	for _, v := range d.fileFullPaths {
 		f, err := os.Open(v)
-		defer f.Close()
+		defer func() {
+			f.Close()
+		}()
 		if err != nil {
 			return err
 		}
