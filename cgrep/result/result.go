@@ -1,8 +1,10 @@
 package result
 
 import (
+	"fmt"
 	"io"
 	"sort"
+	"strings"
 	"sync"
 )
 
@@ -34,7 +36,8 @@ func Set(fileName, txt string, no int) {
 // TODO: ファイル名は昇順で出力する
 // TODO: 標準出力は引数 w io.Writer として渡される想定
 func RenderFiles(w io.Writer) {
-	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	files := Store.Files()
+	fmt.Fprintln(w, strings.Join(files, "\n"))
 }
 
 // TODO: ファイル名と一致した行番号、一致した行の標準出力に出力する
@@ -42,7 +45,16 @@ func RenderFiles(w io.Writer) {
 // TODO: 出力フォーマットは README.md を参照
 // TODO: 標準出力は引数 w io.Writer として渡される想定
 func RenderWithContent(w io.Writer) {
-	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	files := Store.Files()
+	for i, file := range files {
+		fmt.Fprintln(w, file)
+		for _, line := range Store.Data[file] {
+			fmt.Fprintf(w, "%d: %s\n", line.No, line.Text)
+		}
+		if i+1 < len(files) {
+			fmt.Fprintf(w, "\n")
+		}
+	}
 }
 
 // 保存されているファイル名を昇順でソートした上で []string として返す関数
