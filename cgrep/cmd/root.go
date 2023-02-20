@@ -62,13 +62,9 @@ func ExecSearch(fullPath, regexpWord string) error {
 		return err
 	}
 
-	// WaitGroup
-	wg.Add(1)
+	sa.Search()   // 検索
 
-	go sa.Search()
-
-	// 完了待ち
-	wg.Done()
+	wg.Wait()     // 完了待ち
 
 	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
 	return nil
