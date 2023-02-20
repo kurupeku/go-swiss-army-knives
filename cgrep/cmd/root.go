@@ -5,9 +5,13 @@ package cmd
 
 import (
 	"cgrep/errors"
+	"cgrep/result"
+	"cgrep/search"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -43,21 +47,27 @@ Args:
 	},
 }
 
-// TODO: 検索処理を非同期で実行する関数
-// TODO: sync.WaitGroup、検索ルート、正規表現オブジェクトを search.New() に渡して検索オブジェクトを作成する
-// TODO: 検索オブジェクト生成後に非同期で Dir.Search() を実行する
-// TODO: すべての検索処理が終わるまで処理をブロックして完了を待つ
-// TODO: エラー発生時は即時リターンする
 func ExecSearch(fullPath, regexpWord string) error {
-	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	wg := &sync.WaitGroup{}
+	re := regexp.MustCompile(regexpWord)
+	s, err := search.New(wg, fullPath, re)
+	if err != nil {
+		return err
+	}
+
+	wg.Add(1)
+	go s.Search()
+	wg.Wait()
+
 	return nil
 }
 
-// TODO: 検索結果を標準出力に出力する
-// TODO: 標準出力は引数 w io.Writer として渡される想定
-// TODO: グローバル変数 withContent が false の場合はファイル名のみ、 true の場合は内容も出力する
 func Render(w io.Writer) {
-	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	if withContent {
+		result.RenderWithContent(w)
+	} else {
+		result.RenderFiles(w)
+	}
 }
 
 func Execute() {
