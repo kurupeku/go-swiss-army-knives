@@ -1,6 +1,9 @@
 package search
 
 import (
+	"bufio"
+	"cgrep/errors"
+	"cgrep/result"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -67,6 +70,20 @@ func (d *dir) Scan() error {
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+
+	d.wg.Add(1)                    // WaitGroup
+	defer d.wg.Done()              // 関数の終了時にgoルーチンの完了待ち
+
+	for _, targetDir := range d.subDirs {
+		go targetDir.Search()      // サブディレクトリ検索を再帰で呼出し
+	}
+
+	// ファイルを再帰で検索。
+	err := d.GrepFiles()
+	if err != nil {
+		errors.Set(err)            //エラーが返ってきたらセット。
+	}
+
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
@@ -77,7 +94,42 @@ func (d *dir) Search() {
 // TODO: エラーが発生したら即時リターンする
 func (d *dir) GrepFiles() error {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
-	return nil
+
+	for _, targetFilePath := range d.fileFullPaths {
+
+		// ファイルオープン
+		targetFile, err := os.Open(targetFilePath)
+		if err != nil {
+			return err                   // エラーを返す
+		}
+		defer targetFile.Close()         // ファイルのクローズを deferで仕掛ける
+
+		// readline でループ
+		lineCnt := 0
+		scanner := bufio.NewScanner(targetFile)
+		for scanner.Scan() {
+
+			lineCnt++                    // 行カウンタ
+			textLine := scanner.Text()   // 1行読み込み
+
+			// 正規表現にヒットする行があるか？
+			if d.regexp.MatchString(textLine) {
+
+				relativePathStr, err := relativePath(targetFile)   // 相対パスを取得
+
+				if err != nil {
+					return err           // エラーを返す
+				}
+
+				result.Set(relativePathStr, textLine, lineCnt)     // ヒットした情報をキープ
+			}
+		}
+
+		if err := scanner.Err(); err != nil {
+			return err                   // エラーを返す
+		}
+	}
+	return nil                           // 正常終了
 }
 
 // 自身が .git ディレクトリであるかを検証するメソッド
