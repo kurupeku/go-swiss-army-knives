@@ -5,9 +5,13 @@ package cmd
 
 import (
 	"cgrep/errors"
+	"cgrep/result"
+	"cgrep/search"
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -20,7 +24,6 @@ var rootCmd = &cobra.Command{
 	Short: "Search for file names containing a argument",
 	Long: `Search file names contains argument.
 Arguments are treated as regular expressions.
-
 Args:
   A search string that can be compiled as a regular expression`,
 	Args: cobra.ExactArgs(1),
@@ -50,6 +53,29 @@ Args:
 // TODO: エラー発生時は即時リターンする
 func ExecSearch(fullPath, regexpWord string) error {
 	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+
+	// regexpWordを正規表現オブジェクトに変換する
+	re, err := regexp.Compile(regexpWord)
+	if err != nil {
+		return err
+	}
+
+	// WaitGroupを作成する
+	wg := &sync.WaitGroup{}
+
+	// search.Dirを生成する
+	dir, err := search.New(wg, fullPath, re)
+	if err != nil {
+		return err
+	}
+
+	// 非同期で Dir.search()を実行する
+	wg.Add(1)
+	go func() {
+		dir.Search()
+	}()
+	wg.Wait()
+
 	return nil
 }
 
@@ -58,6 +84,11 @@ func ExecSearch(fullPath, regexpWord string) error {
 // TODO: グローバル変数 withContent が false の場合はファイル名のみ、 true の場合は内容も出力する
 func Render(w io.Writer) {
 	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	if withContent {
+		result.RenderWithContent(w)
+	} else {
+		result.RenderFiles(w)
+	}
 }
 
 func Execute() {
