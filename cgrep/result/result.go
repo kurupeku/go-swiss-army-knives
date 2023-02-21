@@ -1,6 +1,7 @@
 package result
 
 import (
+	"fmt"
 	"io"
 	"sort"
 	"sync"
@@ -30,19 +31,33 @@ func Set(fileName, txt string, no int) {
 	Store.Data[fileName] = append(Store.Data[fileName], Line{txt, no})
 }
 
-// TODO: ファイル名のみを標準出力に出力する
-// TODO: ファイル名は昇順で出力する
-// TODO: 標準出力は引数 w io.Writer として渡される想定
 func RenderFiles(w io.Writer) {
 	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	// TODO: ファイル名は昇順で出力する
+	for _, fName := range Store.Files() {
+		fmt.Printf("fileName = %v\n", fName)
+		// TODO: ファイル名のみを標準出力に出力する
+		// TODO: 標準出力は引数 w io.Writer として渡される想定
+		fmt.Fprintf(w, "%s\n", fName)
+	}
 }
 
 // TODO: ファイル名と一致した行番号、一致した行の標準出力に出力する
-// TODO: ファイル名は昇順で出力する
-// TODO: 出力フォーマットは README.md を参照
-// TODO: 標準出力は引数 w io.Writer として渡される想定
+
 func RenderWithContent(w io.Writer) {
 	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	// TODO: ファイル名は昇順で出力する
+	for i, fName := range Store.Files() {
+		if i > 0 {
+			fmt.Fprint(w, "\n")
+		}
+		fmt.Fprintf(w, "%s\n", fName)
+		for _, line := range Store.Data[fName] {
+			// TODO: 出力フォーマットは README.md を参照
+			// TODO: 標準出力は引数 w io.Writer として渡される想定
+			fmt.Fprintf(w, "%d: %s\n", line.No, line.Text)
+		}
+	}
 }
 
 // 保存されているファイル名を昇順でソートした上で []string として返す関数
