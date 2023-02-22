@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"io"
+	"logtransfer/input"
+	"logtransfer/output"
+	"logtransfer/storage"
 	"net/url"
 	"os"
 	"os/exec"
@@ -57,7 +60,8 @@ e.g ) logtransfer https://sample.com sh ./sample.sh`,
 // TODO: context.CancelFunc も同時に返す
 func NewCtx() (context.Context, context.CancelFunc) {
 	// TODO: 3 週目：1 ~ 2 週目の処理を別スレッドで実行しつつ、シグナルを受け取った際にそれらを安全に終了させるメイン処理
-	return nil, nil
+	ctx, cancel := context.WithCancel(context.Background())
+	return ctx, cancel
 }
 
 // TODO: すべての処理を goroutine にて発火させる
@@ -68,6 +72,13 @@ func NewCtx() (context.Context, context.CancelFunc) {
 // TODO: output.Forward() の送信先 URL は引数 u *url.URL を使用して渡す
 func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
 	// TODO: 3 週目：1 ~ 2 週目の処理を別スレッドで実行しつつ、シグナルを受け取った際にそれらを安全に終了させるメイン処理
+	ln := make(chan []byte, channelLen)
+	out := make(chan []byte, channelLen)
+	errc := make(chan error, channelLen)
+	go input.Monitor(ctx, ln, errc, r)
+	go storage.Listen(ctx, ln, errc)
+	go storage.Load(ctx, out, errc, timeSpan)
+	go output.Forward(ctx, out, errc, u.String())
 }
 
 func Execute() {

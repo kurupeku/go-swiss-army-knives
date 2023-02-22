@@ -1,7 +1,9 @@
 package input
 
 import (
+	"bufio"
 	"context"
+	"errors"
 	"io"
 )
 
@@ -11,4 +13,21 @@ import (
 // TODO: エラーが発生した際には引数 errc chan error へエラーを送信する
 func Monitor(ctx context.Context, ln chan []byte, errc chan error, r io.Reader) {
 	// TODO: 1 週目：標準出力（`io.Reader` として受け取る）から出力内容を読み取る処理と、読み取った結果を内部のバッファに保存する処理
+	for {
+		select {
+		case <-ctx.Done():
+			if err := ctx.Err(); errors.Is(err, context.Canceled) {
+				errc <- err
+			} else if errors.Is(err, context.DeadlineExceeded) {
+				errc <- err
+			}
+			close(ln)
+			return
+		default:
+			scan := bufio.NewScanner(r)
+			for scan.Scan() {
+				ln <- []byte(scan.Text())
+			}
+		}
+	}
 }

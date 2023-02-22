@@ -92,10 +92,10 @@ func (d *dir) GrepFiles() error {
 	for _, v := range d.fileFullPaths {
 		func() error {
 			fileName, err := os.Open(v)
-			defer fileName.Close()
 			if err != nil {
 				return err
 			}
+			defer fileName.Close()
 			fpath, err := relativePath(fileName)
 			if err != nil {
 				return err
