@@ -49,12 +49,12 @@ func RenderFiles(w io.Writer) {
 func RenderWithContent(w io.Writer) {
 	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
 	for i, f := range Store.Files() {
+		if i > 0 {
+			fmt.Fprint(w, "\n")
+		}
 		fmt.Fprint(w, f+"\n")
 		for _, c := range Store.Data[f] {
 			fmt.Fprint(w, strconv.Itoa(c.No)+": "+c.Text+"\n")
-		}
-		if i != len(Store.Files())-1 {
-			fmt.Fprint(w, "\n")
 		}
 	}
 }

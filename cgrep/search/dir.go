@@ -69,6 +69,7 @@ func (d *dir) Scan() error {
 // TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search() {
+	defer d.wg.Done()
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
 	err := d.GrepFiles()
 	if err != nil {
@@ -78,7 +79,6 @@ func (d *dir) Search() {
 		d.wg.Add(1)
 		sd.Search()
 	}
-	d.wg.Done()
 }
 
 // TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
