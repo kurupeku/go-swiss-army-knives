@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -75,10 +77,15 @@ func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
 	ln := make(chan []byte, channelLen)
 	out := make(chan []byte, channelLen)
 	errc := make(chan error, channelLen)
+	sigCh := make(chan os.Signal)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 	go input.Monitor(ctx, ln, errc, r)
 	go storage.Listen(ctx, ln, errc)
 	go storage.Load(ctx, out, errc, timeSpan)
 	go output.Forward(ctx, out, errc, u.String())
+	go func() {
+		<-sigCh
+	}()
 }
 
 func Execute() {

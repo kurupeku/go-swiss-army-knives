@@ -26,8 +26,8 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 				errc <- err
 			}
 			return
-		default:
-			body := bytes.NewBuffer(<-out)
+		case a1 := <-out:
+			body := bytes.NewBuffer(a1)
 			req, err := http.NewRequest("POST", url, body)
 			if err != nil {
 				errc <- err

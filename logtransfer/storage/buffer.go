@@ -25,9 +25,8 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 				errc <- err
 			}
 			return
-		default:
-			buf.Write(<-ln)
-			buf.Write([]byte("\n"))
+		case a1 := <-ln:
+			buf.WriteString(string(a1) + "\n")
 		}
 	}
 }
