@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -49,12 +50,17 @@ func Load(ctx context.Context, out chan []byte, errc chan error, span time.Durat
 			}
 			return
 		default:
-			if buf.Len() != 0 {
-				plain := make([]byte, buf.Len())
-				buf.Read(plain)
-				out <- plain
-			}
+			fmt.Println("wait...")
 		}
-		time.Sleep(span)
+		if buf.Len() != 0 {
+			// fmt.Println("beforebuffer: ", buf.String())
+			plain := make([]byte, buf.Len())
+			buf.Read(plain)
+			// fmt.Println("afterbuffer: ", buf.String())
+			// fmt.Println("plain: ", string(plain))
+			out <- plain
+		} else {
+			time.Sleep(span)
+		}
 	}
 }

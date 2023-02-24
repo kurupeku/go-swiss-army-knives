@@ -24,10 +24,10 @@ func Monitor(ctx context.Context, ln chan []byte, errc chan error, r io.Reader) 
 			close(ln)
 			return
 		default:
-			scan := bufio.NewScanner(r)
-			for scan.Scan() {
-				ln <- []byte(scan.Text())
-			}
+		}
+		scan := bufio.NewScanner(r)
+		for scan.Scan() {
+			ln <- []byte(scan.Text())
 		}
 	}
 }

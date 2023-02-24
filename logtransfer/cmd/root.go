@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -85,7 +86,7 @@ func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
 	errc := make(chan error, channelLen)
 	go input.Monitor(ctx, ln, errc, r)
 	go storage.Listen(ctx, ln, errc)
-	go storage.Load(ctx, out, errc, timeSpan)
+	go storage.Load(ctx, out, errc, timeSpan*time.Second)
 	go output.Forward(ctx, out, errc, u.String())
 }
 

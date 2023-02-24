@@ -27,6 +27,8 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 			}
 			return
 		case a1 := <-out:
+			// fmt.Println("test:   ")
+			// fmt.Println(string(a1))
 			body := bytes.NewBuffer(a1)
 			req, err := http.NewRequest("POST", url, body)
 			if err != nil {
@@ -38,6 +40,8 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 			if err != nil {
 				errc <- err
 			}
+			// default:
+			// 	fmt.Println("wait...")
 		}
 	}
 }
