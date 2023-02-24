@@ -69,7 +69,8 @@ func TestStartBackgrounds(t *testing.T) {
 			StartBackgrounds(ctx, u, buf)
 
 			buf.WriteString(tt.lines)
-			time.Sleep((timeSpan + 1) * time.Second)
+			// time.Sleep((timeSpan + 1) * time.Second)
+			time.Sleep((2 + 1) * time.Second)
 
 			var expectCount int
 			if tt.lines == "" {

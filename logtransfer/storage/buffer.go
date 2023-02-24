@@ -60,7 +60,8 @@ func Load(ctx context.Context, out chan []byte, errc chan error, span time.Durat
 			// fmt.Println("plain: ", string(plain))
 			out <- plain
 		} else {
-			time.Sleep(span)
+			// time.Sleep(span)
+			time.Sleep(2 * time.Second)
 		}
 	}
 }
