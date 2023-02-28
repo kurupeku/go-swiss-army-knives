@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
 	"time"
 )
 
@@ -40,12 +41,38 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 	}
 }
 
-// TODO: グローバル変数 buf *bytes.Buffer から一定時間ごとに内容を読み込み、内容を引数 out chan []byte へ送信する
-// TODO: 読み込む間隔は引数 span time.Duration を利用して制御する
-// TODO: buf に何も保存されていなければ内容の送信は行わない
-// TODO: 一度に保存された内容すべてを読み取り、 buf にはなにも保存されていない状態にリセットする
-// TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
-// TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration) {
 	// TODO: 2 週目：内部バッファに保存された内容を一定時間ごとに読み込む処理と、読み取った文字列を Body とした HTTP#POST リクエストを投げる処理
+	tick := time.NewTicker(span)
+
+	for {
+		select {
+
+		// TODO 5: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
+		case <-ctx.Done():
+			close(out)
+			return
+
+		// TODO 1: ...一定時間ごとに内容を読み込み
+		// TODO 2: 読み込む間隔は引数 span time.Duration を利用して制御する
+		case <-tick.C:
+			// TODO 1: グローバル変数 buf *bytes.Buffer から...
+			// TODO 4: 一度に保存された内容すべてを読み取り...
+			b, err := ioutil.ReadAll(buf)
+
+			if err != nil {
+				// TODO 6: エラーが発生した際には errc chan error へエラーを送信する
+				// 常に待ち受けるので関数は終了しない
+				continue
+			}
+			if len(b) == 0 {
+				// TODO 3: buf に何も保存されていなければ内容の送信は行わない
+				continue
+			}
+			// TODO 1: 内容を引数 out chan []byte へ送信する
+			out <- b
+			// TODO 4: ...buf にはなにも保存されていない状態にリセットする
+			buf.Reset()
+		}
+	}
 }
