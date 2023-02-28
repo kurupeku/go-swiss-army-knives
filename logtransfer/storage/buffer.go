@@ -14,7 +14,26 @@ var (
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Listen(ctx context.Context, ln chan []byte, errc chan error) {
-	// TODO: 1 週目：標準出力（`io.Reader` として受け取る）から出力内容を読み取る処理と、読み取った結果を内部のバッファに保存する処理
+	// 参考: https://free-engineer.life/golang-select/
+	
+	for {
+		select {
+			// 呼び出し側からキャンセルがかかった時
+			case <- ctx.Done():
+				return
+			// lnから受信したときに実行される処理
+			case input, open := <-ln:
+				// チャンネルが閉じてる場合
+				if !open {
+					return
+				}
+				
+				_, err := buf.Write([]byte(string(input) + "\n"))
+				if err != nil {
+					errc <- err
+				}
+		}
+	}	
 }
 
 // TODO: グローバル変数 buf *bytes.Buffer から一定時間ごとに内容を読み込み、内容を引数 out chan []byte へ送信する
