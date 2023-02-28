@@ -22,13 +22,16 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 			return
 		case b, ok := <-ln:
 			if ok {
-				buf.Write(b)
+				_, err := buf.Write(b)
+				if err != nil {
+					errc <- err
+					return
+				}
 				buf.Write([]byte("\n"))
 			} else {
 				errc <- errors.New("error")
 				return
 			}
-		default:
 		}
 	}
 }
@@ -41,4 +44,15 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration) {
 	// TODO: 2 週目：内部バッファに保存された内容を一定時間ごとに読み込む処理と、読み取った文字列を Body とした HTTP#POST リクエストを投げる処理
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(span):
+			if buf.Len() > 0 {
+				out <- buf.Bytes()
+				buf.Reset()
+			}
+		}
+	}
 }

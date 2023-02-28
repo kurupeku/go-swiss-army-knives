@@ -1,8 +1,8 @@
 package input
 
 import (
+	"bufio"
 	"context"
-	"fmt"
 	"io"
 )
 
@@ -19,10 +19,13 @@ func Monitor(ctx context.Context, ln chan []byte, errc chan error, r io.Reader) 
 			close(ln)
 			return
 		default:
-			var b []byte
-			fmt.Fscan(r, &b)
-			if len(b) > 0 {
-				ln <- b
+			s := bufio.NewScanner(r)
+			for s.Scan() {
+				ln <- s.Bytes()
+			}
+			if s.Err() != nil {
+				errc <- s.Err()
+				return
 			}
 		}
 	}
