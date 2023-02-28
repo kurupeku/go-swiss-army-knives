@@ -11,3 +11,10 @@ services:
       - tail
       - -f
       - /dev/null
+  browser:
+    platform: "linux/amd64"
+    build:
+      context: ./lib/log-browser
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
