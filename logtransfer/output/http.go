@@ -2,6 +2,8 @@ package output
 
 import (
 	"context"
+	"net/http"
+	"strings"
 )
 
 const (
@@ -14,4 +16,27 @@ const (
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Forward(ctx context.Context, out chan []byte, errc chan error, url string) {
 	// TODO: 2 週目：内部バッファに保存された内容を一定時間ごとに読み込む処理と、読み取った文字列を Body とした HTTP#POST リクエストを投げる処理
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case v := <-out:
+			req, err := http.NewRequest(
+				"POST",
+				url,
+				strings.NewReader(string(v)),
+			)
+			if err != nil {
+				errc <- err
+			}
+			req.Header.Set("Content-Type", contentType)
+
+			client := &http.Client{}
+			res, err := client.Do(req)
+			if err != nil {
+				errc <- err
+			}
+			defer res.Body.Close()
+		}
+	}
 }

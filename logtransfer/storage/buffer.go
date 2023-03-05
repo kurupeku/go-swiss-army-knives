@@ -36,4 +36,24 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration) {
 	// TODO: 2 週目：内部バッファに保存された内容を一定時間ごとに読み込む処理と、読み取った文字列を Body とした HTTP#POST リクエストを投げる処理
+	if buf.Len() == 0 {
+		return
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			data := make([]byte, buf.Len())
+			_, err := buf.Read(data)
+			if err != nil {
+				errc <- err
+				return
+			}
+			out <- data
+		}
+		buf.Reset()
+		time.Sleep(span)
+	}
 }
