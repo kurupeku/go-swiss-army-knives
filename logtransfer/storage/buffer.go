@@ -14,7 +14,20 @@ var (
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Listen(ctx context.Context, ln chan []byte, errc chan error) {
-	// TODO: 1 週目：標準出力（`io.Reader` として受け取る）から出力内容を読み取る処理と、読み取った結果を内部のバッファに保存する処理
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case b, ok := <-ln:
+			if !ok {
+				return
+			}
+			_, err := buf.Write([]byte(string(b) + "\n"))
+			if err != nil {
+				errc <- err
+			}
+		}
+	}
 }
 
 // TODO: グローバル変数 buf *bytes.Buffer から一定時間ごとに内容を読み込み、内容を引数 out chan []byte へ送信する
