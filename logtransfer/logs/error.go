@@ -1,6 +1,7 @@
 package logs
 
 import (
+	"bufio"
 	"context"
 	"os"
 )
@@ -14,12 +15,14 @@ func Error(ctx context.Context, errc chan error) error {
 	}
 	defer ef.Close()
 
+	w := bufio.NewWriter(ef)
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case err := <-errc:
-			ef.WriteString(err.Error())
+			_, _ = w.WriteString(err.Error())
+			_ = w.Flush()
 		}
 	}
 }
