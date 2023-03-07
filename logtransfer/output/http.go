@@ -36,10 +36,10 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 
 			if resp.StatusCode != http.StatusOK {
 				b, err := io.ReadAll(resp.Body)
-				sb := string(b)
 				if err != nil {
 					errc <- err
 				} else {
+					sb := string(b)
 					errc <- errors.New(sb)
 				}
 			}
