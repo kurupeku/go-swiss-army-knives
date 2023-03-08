@@ -11,6 +11,7 @@ import (
 	"logtransfer/input"
 	"logtransfer/output"
 	"logtransfer/storage"
+	"logtransfer/logs"
 
 	"github.com/spf13/cobra"
 )
@@ -79,8 +80,14 @@ func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
 
 	go input.Monitor(ctx, ln, errc, r)
 	go storage.Listen(ctx, ln, errc)
+	// timeSpanだと5秒より早い間隔でログに出力されたため time.NewTicker(span * time.Second) に修正
 	go storage.Load(ctx, out, errc, timeSpan)
 	go output.Forward(ctx, out, errc, u.String())
+
+	// errcがどう扱われるのかが謎だった
+	// READMEより goroutine 内で起こったエラーをログファイルに書き出す処理は実装済み
+	// ↓のこと？
+	go logs.Error(ctx, errc)
 }
 
 func Execute() {
