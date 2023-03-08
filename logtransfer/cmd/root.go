@@ -7,11 +7,12 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"time"
 
 	"logtransfer/input"
+	"logtransfer/logs"
 	"logtransfer/output"
 	"logtransfer/storage"
-	"logtransfer/logs"
 
 	"github.com/spf13/cobra"
 )
@@ -80,8 +81,8 @@ func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
 
 	go input.Monitor(ctx, ln, errc, r)
 	go storage.Listen(ctx, ln, errc)
-	// timeSpanだと5秒より早い間隔でログに出力されたため time.NewTicker(span * time.Second) に修正
-	go storage.Load(ctx, out, errc, timeSpan)
+	// timeSpanだと5秒より早い間隔でログに出力されたため timeSpan*time.Second に修正
+	go storage.Load(ctx, out, errc, timeSpan * time.Second)
 	go output.Forward(ctx, out, errc, u.String())
 
 	// errcがどう扱われるのかが謎だった

@@ -44,7 +44,7 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration) {
-	tick := time.NewTicker(span * time.Second)
+	tick := time.NewTicker(span)
 	for {
 		select {
 		case <-ctx.Done():
