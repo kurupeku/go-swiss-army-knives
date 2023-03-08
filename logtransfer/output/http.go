@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 )
 
@@ -20,25 +21,27 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 	for {
 		select {
 		case <-ctx.Done():
+			close(errc)
 			return
 		case b, ok := <-out:
 			if ok {
-				req, err := http.NewRequest("POST", url, bytes.NewReader(b))
-				if err != nil {
-					errc <- err
-					return
-				}
-				req.Header.Add("Content-Type", "plain/text")
-				c := &http.Client{}
-				res, err := c.Do(req)
+				res, err := http.Post(url, contentType, bytes.NewReader(b))
 				if err != nil {
 					errc <- err
 					return
 				}
 				defer res.Body.Close()
-			} else {
-				errc <- errors.New("error")
-				return
+				if res.StatusCode != http.StatusOK {
+					b, err := io.ReadAll(res.Body)
+					if err != nil {
+						errc <- err
+						return
+					} else {
+						st := string(b)
+						errc <- errors.New(st)
+					}
+
+				}
 			}
 		}
 	}

@@ -3,7 +3,7 @@ package storage
 import (
 	"bytes"
 	"context"
-	"errors"
+	"io"
 	"time"
 )
 
@@ -28,9 +28,6 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 					return
 				}
 				buf.Write([]byte("\n"))
-			} else {
-				errc <- errors.New("error")
-				return
 			}
 		}
 	}
@@ -47,11 +44,15 @@ func Load(ctx context.Context, out chan []byte, errc chan error, span time.Durat
 	for {
 		select {
 		case <-ctx.Done():
+			close(out)
 			return
 		case <-time.After(span):
-			if buf.Len() > 0 {
-				out <- buf.Bytes()
-				buf.Reset()
+			b, err := io.ReadAll(buf)
+			if err != nil {
+				errc <- err
+			}
+			if len(b) > 0 {
+				out <- b
 			}
 		}
 	}
