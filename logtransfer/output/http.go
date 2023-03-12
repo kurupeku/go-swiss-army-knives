@@ -20,7 +20,6 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 	for {
 		select {
 		case <-ctx.Done():
-			close(out)
 			return
 		case b, ok := <-out:
 			if !ok {
