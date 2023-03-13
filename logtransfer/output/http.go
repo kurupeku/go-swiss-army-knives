@@ -2,6 +2,8 @@ package output
 
 import (
 	"context"
+	"errors"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -20,7 +22,10 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 		select {
 		case <-ctx.Done():
 			return
-		case v := <-out:
+		case v, ok := <-out:
+			if !ok {
+				return
+			}
 			req, err := http.NewRequest(
 				"POST",
 				url,
@@ -37,6 +42,14 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 				errc <- err
 			}
 			defer res.Body.Close()
+			if res.StatusCode != http.StatusOK {
+				b, err := io.ReadAll(res.Body)
+				if err != nil {
+					errc <- err
+				} else {
+					errc <- errors.New(string(b))
+				}
+			}
 		}
 	}
 }
