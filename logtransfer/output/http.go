@@ -22,7 +22,6 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 	for {
 		select {
 		case <-ctx.Done():
-			close(out)
 			return
 		case data := <-out:
 			req, err := http.NewRequest("POST", url, bytes.NewReader(data))
@@ -37,7 +36,7 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 				errc <- err
 				continue
 			}
-			resp.Body.Close()
+			defer resp.Body.Close()
 		}
 	}
 }

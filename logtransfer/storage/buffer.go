@@ -68,8 +68,11 @@ func Load(ctx context.Context, out chan []byte, errc chan error, span time.Durat
 			case <-ctx.Done():
 				close(out)
 				return
+			default:
+				return
 
 			}
+
 		}
 	}
 }
