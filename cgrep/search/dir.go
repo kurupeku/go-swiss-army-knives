@@ -99,7 +99,7 @@ func (d *dir) GrepFiles() error {
 		}(file)
 
 		var lineNo int
-		scanner := bufio.NewScanner(f)
+		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			lineNo++
 			str := scanner.Text()
