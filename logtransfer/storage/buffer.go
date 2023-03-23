@@ -20,7 +20,7 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 		select {
 		// TODO 2: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 		case <-ctx.Done():
-			close(ln)
+			//close(ln)
 			return
 		case b, ok := <-ln:
 			// channelを受ける側は closeしている可能性があるのでチェックする。
