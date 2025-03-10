@@ -17,23 +17,37 @@ type Buffer struct {
 func (b *Buffer) Write(p []byte) (n int, err error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	return b.buf.Write(p)
+
+	// データが空の場合は書き込みをスキップ
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	got := make([]byte, len(p))
+	// 最後に改行がなければ追加
+	if p[len(p)-1] != '\n' {
+		copy(got, p)
+		got = append(got, '\n')
+	} else {
+		copy(got, p)
+	}
+
+	return b.buf.Write(got)
 }
 
-// Bytes はバッファ内のバイト列を返します
-func (b *Buffer) Bytes() []byte {
+func (b *Buffer) WriteString(s string) (n int, err error) {
+	return b.Write([]byte(s))
+}
+
+// Read はバッファから内容を読み出し、バッファをクリアします
+func (b *Buffer) Read() []byte {
 	b.mu.Lock()
 	defer b.mu.Unlock()
+
 	data := make([]byte, b.buf.Len())
 	copy(data, b.buf.Bytes())
+	b.buf.Reset()
 	return data
-}
-
-// WriteString は文字列をバッファに書き込みます
-func (b *Buffer) WriteString(s string) (n int, err error) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
-	return b.buf.WriteString(s)
 }
 
 // Len はバッファの長さを返します
@@ -61,7 +75,20 @@ var (
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Listen(ctx context.Context, ln chan []byte, errc chan error) {
-	// TODO: 1 週目：標準出力（`io.Reader` として受け取る）から出力内容を読み取る処理と、読み取った結果を内部のバッファに保存する処理
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case line, ok := <-ln:
+			if !ok {
+				return
+			}
+			if _, err := buf.Write(line); err != nil {
+				errc <- err
+				return
+			}
+		}
+	}
 }
 
 // TODO: グローバル変数 buf *bytes.Buffer から一定時間ごとに内容を読み込み、内容を引数 out chan []byte へ送信する
@@ -71,5 +98,23 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration) {
-	// TODO: 2 週目：内部バッファに保存された内容を一定時間ごとに読み込む処理と、読み取った文字列を Body とした HTTP#POST リクエストを投げる処理
+	ticker := time.NewTicker(span)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if buf.Len() == 0 {
+				continue
+			}
+
+			content := buf.Read()
+			// 空行や空白文字のみの場合はスキップ
+			if len(bytes.TrimSpace(content)) > 0 {
+				out <- content
+			}
+		}
+	}
 }

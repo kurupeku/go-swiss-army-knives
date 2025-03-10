@@ -1,7 +1,11 @@
 package output
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"io"
+	"net/http"
 )
 
 const (
@@ -13,5 +17,38 @@ const (
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
 // TODO: エラーが発生した際には errc chan error へエラーを送信する
 func Forward(ctx context.Context, out chan []byte, errc chan error, url string) {
-	// TODO: 2 週目：内部バッファに保存された内容を一定時間ごとに読み込む処理と、読み取った文字列を Body とした HTTP#POST リクエストを投げる処理
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case data := <-out:
+			req, err := http.NewRequestWithContext(
+				ctx,
+				http.MethodPost,
+				url,
+				bytes.NewReader(data),
+			)
+			if err != nil {
+				errc <- err
+				continue
+			}
+			req.Header.Set("Content-Type", contentType)
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				errc <- err
+				continue
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode >= 400 {
+				body, err := io.ReadAll(resp.Body)
+				if err != nil {
+					errc <- fmt.Errorf("HTTP request failed with status: %s", resp.Status)
+					continue
+				}
+				errc <- fmt.Errorf("HTTP request failed with status: %s, body: %s", resp.Status, string(body))
+			}
+		}
+	}
 }

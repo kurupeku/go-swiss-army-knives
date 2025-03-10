@@ -40,7 +40,8 @@ func TestListen(t *testing.T) {
 				ln <- []byte(line)
 			}
 			time.Sleep(500 * time.Millisecond)
-			assert.Equal(t, tt.wantBuf.Bytes(), buf.Bytes())
+			got := buf.Read()
+			assert.Equal(t, tt.wantBuf.Bytes(), got)
 			buf.Reset()
 		})
 	}

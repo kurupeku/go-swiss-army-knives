@@ -7,6 +7,13 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
+	"time"
+
+	"logtransfer/input"
+	"logtransfer/logs"
+	"logtransfer/output"
+	"logtransfer/storage"
 
 	"github.com/spf13/cobra"
 )
@@ -56,8 +63,7 @@ e.g ) logtransfer https://sample.com sh ./sample.sh`,
 // TODO: シグナル（SIGTERM など）が呼ばれた際に、それを検知してキャンセル処理が走る context.Context を用意する
 // TODO: context.CancelFunc も同時に返す
 func NewCtx() (context.Context, context.CancelFunc) {
-	// TODO: 3 週目：1 ~ 2 週目の処理を別スレッドで実行しつつ、シグナルを受け取った際にそれらを安全に終了させるメイン処理
-	return nil, nil
+	return signal.NotifyContext(context.Background(), os.Interrupt)
 }
 
 // TODO: すべての処理を goroutine にて発火させる
@@ -67,7 +73,17 @@ func NewCtx() (context.Context, context.CancelFunc) {
 // TODO: storage.Load() の実行間隔は定数 timeSpan を利用して渡す
 // TODO: output.Forward() の送信先 URL は引数 u *url.URL を使用して渡す
 func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
-	// TODO: 3 週目：1 ~ 2 週目の処理を別スレッドで実行しつつ、シグナルを受け取った際にそれらを安全に終了させるメイン処理
+	var (
+		ln   = make(chan []byte, channelLen)
+		out  = make(chan []byte, channelLen)
+		errc = make(chan error, channelLen)
+	)
+
+	go logs.Error(ctx, errc)
+	go input.Monitor(ctx, ln, errc, r)
+	go storage.Listen(ctx, ln, errc)
+	go storage.Load(ctx, out, errc, timeSpan*time.Second)
+	go output.Forward(ctx, out, errc, u.String())
 }
 
 func Execute() {
