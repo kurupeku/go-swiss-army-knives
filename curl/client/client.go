@@ -13,18 +13,22 @@ type HttpClient struct {
 	requestHeader map[string]string
 }
 
-// TODO:URLはnet/urlパッケージの*url.URLで構築する
+// TODO: NewHttpClientで必要な実装
+// 1. URLの構築
+//   - net/urlパッケージのParseRequestURIでURLを構築する
 //
-// TODO:customHeadersをリクエストヘッダとして設定
+// 2. リクエストヘッダの設定
+//   - customHeadersの内容をrequestHeaderマップに設定する
+//   - 形式：map[string]string{"Header-Name": "header-value"}
 //
-// TODO:HTTPメソッドがGET,DELETEの場合
-// - リクエストボディは設定しない
-// - リクエストヘッダにContent-Typeが含まれている場合は削除
-//
-// TODO:HTTPメソッドがPOST,PUT,DELETEの場合
-// - リクエストヘッダのContent-Typeは"application/json"にする
-// - dataの値をそのままレスポンスボディに設定
-// - その際、dataが空であればエラー
+// 3. HTTPメソッドとボディの設定
+//   GET/DELETEの場合:
+//   - requestBodyはnil
+//   - Content-Typeヘッダーは含めない（存在する場合は削除）
+//   POST/PUT/PATCHの場合:
+//   - Content-Typeヘッダーを"application/json"に設定
+//   - requestBodyにdataを設定
+//   - dataが空文字列の場合はエラーを返す
 func NewHttpClient(
 	rawurl string,
 	method string,
@@ -45,9 +49,15 @@ func (c *HttpClient) Execute() (string, string, error) {
 	return CreateRequestText(req), CreateResponseText(res), nil
 }
 
-// TODO:URL, HTTPメソッド, リクエストヘッダ, リクエストボディが適切に設定された*http.Requestを生成
-// TODO:HTTPリクエストを実行後の*http.Request, *http.Responseを返却
-// TODO:ただ単にオブジェクトを作るだけでなく、このメソッド内でリクエストの実行も完了させる
+// TODO: SendRequestで必要な実装
+// 1. http.NewRequestでリクエストを生成
+//   - URL、メソッド、ボディを使用してリクエストを作成する
+//
+// 2. リクエストヘッダの設定
+//   - requestHeaderの内容をhttp.Request.Headerに設定する
+//
+// 3. リクエストの実行
+//   - http.DefaultClientを使用してリクエストを送信し、結果を取得する
 func (c *HttpClient) SendRequest() (*http.Request, *http.Response, error) {
 	// TODO: 2 週目：HTTP 通信を実行
 	return nil, nil, nil
