@@ -44,18 +44,25 @@ e.g ) logtransfer https://sample.com sh ./sample.sh`,
 			return err
 		}
 
-		subCmd := exec.Command(args[1], args[2:]...)
+		ctx, cancel := NewCtx()
+		defer cancel()
+
+		subCmd := exec.CommandContext(ctx, args[1], args[2:]...)
 		stdout, err := subCmd.StdoutPipe()
 		if err != nil {
 			return err
 		}
 
-		ctx, cancel := NewCtx()
-		defer cancel()
-
 		StartBackgrounds(ctx, u, stdout)
 
-		subCmd.Run()
+		if err := subCmd.Run(); err != nil {
+			// コンテキストがキャンセルされた場合（Ctrl+Cが押された場合）は
+			// エラーとして扱わない
+			if ctx.Err() != nil {
+				return nil
+			}
+			return err
+		}
 		return nil
 	},
 }

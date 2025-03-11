@@ -69,9 +69,11 @@ tasks:
     cmds:
       - go run ./logtransfer/ http://localhost:3000/logs sh ./logtransfer/testdata/loop.sh
     silent: true
+    ignore_error: true
 
   preview_lt_docker:
     desc: Preview logtransfer cli in docker container or dev-container (require docker-compose up)
     cmds:
       - go run ./logtransfer/ http://browser:3000/logs sh ./logtransfer/testdata/loop.sh
     silent: true
+    ignore_error: true
