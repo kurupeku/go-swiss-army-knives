@@ -1,7 +1,7 @@
 package search
 
 import (
-	"io/ioutil"
+	"context"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -14,7 +14,7 @@ var (
 )
 
 type Dir interface {
-	Search()
+	Search(ctx context.Context)
 }
 
 type dir struct {
@@ -38,7 +38,7 @@ func New(wg *sync.WaitGroup, fullPath string, re *regexp.Regexp) (Dir, error) {
 
 // func New() を実行した際、自身のサブディレクトリとファイル郡をスキャンする処理
 func (d *dir) Scan() error {
-	fs, err := ioutil.ReadDir(d.path)
+	fs, err := os.ReadDir(d.path)
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (d *dir) Scan() error {
 // TODO: 自身も非同期で実行される想定なので d.wg に処理完了を知らせる
 // TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
 // TODO: エラーが発生したら errors.Set(err error) に投げる
-func (d *dir) Search() {
+func (d *dir) Search(ctx context.Context) {
 	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
 }
 

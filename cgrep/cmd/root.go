@@ -5,8 +5,10 @@ package cmd
 
 import (
 	"cgrep/errors"
+	"context"
 	"io"
 	"os"
+	"os/signal"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
@@ -25,17 +27,24 @@ Args:
   A search string that can be compiled as a regular expression`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer cancel()
+
 		fullPath, err := filepath.Abs(dir)
 		if err != nil {
 			return err
 		}
 
-		if err := ExecSearch(fullPath, args[0]); err != nil {
+		if err := ExecSearch(ctx, fullPath, args[0]); err != nil {
 			return err
 		}
 
 		if err := errors.Error(); err != nil {
 			return err
+		}
+
+		if ctx.Err() != nil {
+			return nil
 		}
 
 		Render(os.Stdout)
@@ -48,8 +57,8 @@ Args:
 // TODO: 検索オブジェクト生成後に非同期で Dir.Search() を実行する
 // TODO: すべての検索処理が終わるまで処理をブロックして完了を待つ
 // TODO: エラー発生時は即時リターンする
-func ExecSearch(fullPath, regexpWord string) error {
-	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+func ExecSearch(ctx context.Context, fullPath, regexpWord string) error {
+	// TODO: 1週目: 検索実施ロジックの実装
 	return nil
 }
 
