@@ -26,23 +26,23 @@ func NewHttpClient(
 ) (*HttpClient, error) {
 	// TODO: Implement here
 	// HTTPクライアントを初期化する処理を実装してください：
-	// 1. 引数の検証
-	//    - method が HTTP メソッド（GET, POST, PUT, DELETE, PATCH）として有効か確認
-	//    - method が空文字列でないことを確認
-	//    - エラーの場合は適切なエラーメッセージを返却
+	// 1. URLの構築
+	//    - url パッケージを利用して `url.URL` オブジェクトを生成
 	//
-	// 2. メソッドに応じたリクエストボディとヘッダーの設定
+	// 2. リクエストヘッダの構築
+	//    - カスタムヘッダー []string をパースして map[string][]string に変換
+	// .  - map[string][]string のキーはヘッダー名、値はヘッダー値のリスト
+	//
+	// 3. メソッドに応じたリクエストボディとヘッダーの設定
 	//    - GET, DELETE の場合:
-	//      * リクエストボディは不要 (nil)
-	//      * Content-Type ヘッダーを削除
+	//      - リクエストボディは不要 (nil)
+	//      - Content-Type ヘッダーを削除
 	//    - POST, PUT, PATCH の場合:
-	//      * リクエストボディが必須（空文字列の場合はエラー）
-	//      * Content-Type ヘッダーを "application/json" に設定
+	//      - リクエストボディが必須（空文字列の場合はエラー）
+	//      - Content-Type ヘッダーを "application/json" のみに上書き
 	//
 	// ヒント：
 	// - http パッケージには標準的な HTTP メソッドが定数として定義されています
-	// - errors.New() を使用してカスタムエラーを生成できます
-	// - 実装の参考として http パッケージのドキュメントを確認することをお勧めします
 	// - switch 文を使用してメソッドごとの処理を分岐させることができます
 
 	// URLの構築

@@ -24,7 +24,7 @@ var rootCmd = &cobra.Command{
 	Long: `murl is http/https client command.
 - Args: URL
 - Available HTTP Methods: GET, POST, PUT, DELETE, PATCH
-- Available Content-Type: application/json(only for POST, PUT, PATCH)`,
+- Available Content-Type: application/json (only for POST, PUT, PATCH)`,
 	Args: func(cmd *cobra.Command, args []string) error {
 		if err := cobra.ExactArgs(1)(cmd, args); err != nil {
 			return fmt.Errorf("%s: You must set only URL", err.Error())
