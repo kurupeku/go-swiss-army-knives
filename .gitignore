@@ -181,8 +181,8 @@ fabric.properties
 **.log
 
 # ignore binaries
-curl/curl
-curl/scurl
+murl/murl
+murl/murl
 cgrep/cgrep
 logtransfer/logtransfer
 logtransfer/lt

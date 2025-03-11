@@ -84,7 +84,7 @@ filename2.txt
       - 一致したらファイル名と一致した行番号と行の文字列を記録して
       - ファイルを閉じる
     - ファイル名はカレントディレクトリからの相対パスとともに出力する
-      - e.g.) `testdata/dir/text.txt` `../curl/client/client.go`
+      - e.g.) `testdata/dir/text.txt` `../murl/client/client.go`
     - 内容の保存は `result.Set(fileName, txt string, no int)` へ渡すと保存される
     - エラーが発生したらそのタイミングでリターンする
 

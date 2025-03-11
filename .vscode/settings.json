@@ -7,7 +7,7 @@
     "httpmock",
     "logtransfer",
     "rawurl",
-    "scurl",
+    "murl",
     "SIGTERM",
     "stretchr",
     "testdata"

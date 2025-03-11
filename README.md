@@ -41,7 +41,7 @@ choco install go-task
 
 | Tool          | Desc                              |
 | :------------ | :-------------------------------- |
-| `curl`        | [README](./curl/README.md)        |
+| `murl`        | [README](./murl/README.md)        |
 | `cgrep`       | [README](./cgrep/README.md)       |
 | `logtransfer` | [README](./logtransfer/README.md) |
 
@@ -53,8 +53,8 @@ choco install go-task
 
 | Task                 | Args             | Desc                                                                                     |
 | :------------------- | :--------------- | :--------------------------------------------------------------------------------------- |
-| `task test_curl`     | -                | `curl` パッケージ配下のテストをすべて実行します                                          |
-| `task test_curl_fn`  | 関数・メソッド名 | `curl` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します        |
+| `task test_murl`     | -                | `murl` パッケージ配下のテストをすべて実行します                                          |
+| `task test_murl_fn`  | 関数・メソッド名 | `murl` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します        |
 | `task test_cgrep`    | -                | `cgrep` パッケージ配下のテストをすべて実行します                                         |
 | `task test_cgrep_fn` | 関数・メソッド名 | `cgrep` パッケージ配下のテストの内、テスト名が `<Args>` 一致するもののみ実行します       |
 | `task test_lt`       | -                | `logtransfer` パッケージ配下のテストをすべて実行します                                   |
@@ -72,7 +72,7 @@ choco install go-task
 
 | Tool          | Task               | binary  |
 | :------------ | :----------------- | :------ |
-| `curl`        | `task build_curl`  | `scurl` |
+| `murl`        | `task build_murl`  | `murl`  |
 | `cgrep`       | `task build_cgrep` | `cgrep` |
 | `logtransfer` | `task build_lt`    | `lt`    |
 

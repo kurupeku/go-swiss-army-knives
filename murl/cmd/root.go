@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"curl/client"
+	"murl/client"
 
 	"github.com/spf13/cobra"
 )
@@ -19,9 +19,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "curl [URL]",
-	Short: "curl is http/https client command.",
-	Long: `curl is http/https client command.
+	Use:   "murl [URL]",
+	Short: "murl is http/https client command.",
+	Long: `murl is http/https client command.
 - Args: URL
 - Available HTTP Methods: GET, POST, PUT, DELETE, PATCH
 - Available Content-Type: application/json(only for POST, PUT, PATCH)`,

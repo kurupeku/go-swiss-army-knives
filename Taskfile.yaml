@@ -3,24 +3,24 @@
 version: "3"
 
 tasks:
-  test_curl:
-    desc: Execute test at curl package
-    dir: ./curl
+  test_murl:
+    desc: Execute test at murl package
+    dir: ./murl
     cmds:
       - go test -v ./...
 
-  test_curl_fn:
-    desc: Execute test only single function at curl package
-    dir: ./curl
+  test_murl_fn:
+    desc: Execute test only single function at murl package
+    dir: ./murl
     cmds:
       - go test -v -run {{.CLI_ARGS}} ./...
     silent: true
 
-  build_curl:
-    desc: Build curl cli as scurl (for local OS and ARCH)
-    dir: ./curl
+  build_murl:
+    desc: Build murl cli as murl (for local OS and ARCH)
+    dir: ./murl
     cmds:
-      - go build -o scurl main.go
+      - go build -o murl main.go
     silent: true
 
   test_cgrep:

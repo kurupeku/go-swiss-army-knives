@@ -1,4 +1,4 @@
-module curl
+module murl
 
 go 1.19
 

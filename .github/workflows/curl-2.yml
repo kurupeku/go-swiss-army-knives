@@ -1,14 +1,14 @@
-name: CURL 2 Testing
+name: murl 2 Testing
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "curl/**/**.go"
+      - "murl/**/**.go"
 
 env:
-  TARGET: curl-2
-  APP: curl
+  TARGET: murl-2
+  APP: murl
 
 jobs:
   testing:
@@ -26,11 +26,3 @@ jobs:
         working-directory: ./${{ env.APP }}
         run: |
           go test -v -run SendRequest ./...
-
-      - name: Send result
-        if: always()
-        run: |
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d '{"account" : "${{ github.actor }}" , "chapter" : "${{ env.TARGET }}", "result": "${{ steps.result.conclusion }}"}' \
-            ${{ secrets.RESULT_API }}

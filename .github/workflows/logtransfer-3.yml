@@ -26,11 +26,3 @@ jobs:
         working-directory: ./${{ env.APP }}
         run: |
           go test -v -timeout 15s ./cmd/...
-
-      - name: Send result
-        if: always()
-        run: |
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d '{"account" : "${{ github.actor }}" , "chapter" : "${{ env.TARGET }}", "result": "${{ steps.result.conclusion }}"}' \
-            ${{ secrets.RESULT_API }}
