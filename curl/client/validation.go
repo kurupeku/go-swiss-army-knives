@@ -14,22 +14,22 @@ func ValidateFlags(
 	data string,
 	customHeaders []string,
 ) error {
-	//rawurlのフォーマットをチェック
+	// rawurlのフォーマットをチェック
 	if err := validateRawURL(rawurl); err != nil {
 		return err
 	}
 
-	//methodの整合性をチェック
+	// methodの整合性をチェック
 	if err := validateMethod(method); err != nil {
 		return err
 	}
 
-	//dataのフォーマットをチェック
+	// dataのフォーマットをチェック
 	if err := validateData(data); err != nil {
 		return err
 	}
 
-	//customHeadersのフォーマットをチェック
+	// customHeadersのフォーマットをチェック
 	if err := validateHeader(customHeaders); err != nil {
 		return err
 	}

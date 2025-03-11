@@ -46,7 +46,6 @@ func TestError(t *testing.T) {
 			}
 
 			assert.Equal(t, tt.err.Error(), string(b))
-
 		})
 	}
 }

@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"golang.org/x/net/websocket"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"syscall"
+
+	"golang.org/x/net/websocket"
 )
 
 var c = make(chan []byte, 10)

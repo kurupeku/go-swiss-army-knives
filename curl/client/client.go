@@ -21,14 +21,14 @@ type HttpClient struct {
 //   - customHeadersの内容をrequestHeaderマップに設定する
 //   - 形式：map[string]string{"Header-Name": "header-value"}
 //
-// 3. HTTPメソッドとボディの設定
-//   GET/DELETEの場合:
-//   - requestBodyはnil
-//   - Content-Typeヘッダーは含めない（存在する場合は削除）
-//   POST/PUT/PATCHの場合:
-//   - Content-Typeヘッダーを"application/json"に設定
-//   - requestBodyにdataを設定
-//   - dataが空文字列の場合はエラーを返す
+//  3. HTTPメソッドとボディの設定
+//     GET/DELETEの場合:
+//     - requestBodyはnil
+//     - Content-Typeヘッダーは含めない（存在する場合は削除）
+//     POST/PUT/PATCHの場合:
+//     - Content-Typeヘッダーを"application/json"に設定
+//     - requestBodyにdataを設定
+//     - dataが空文字列の場合はエラーを返す
 func NewHttpClient(
 	rawurl string,
 	method string,

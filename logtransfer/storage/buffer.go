@@ -9,14 +9,14 @@ import (
 
 // Buffer は同期制御されたバッファを提供します
 type Buffer struct {
-	mu  sync.Mutex
+	sync.Mutex
 	buf *bytes.Buffer
 }
 
 // Write はバッファにデータを書き込みます
 func (b *Buffer) Write(p []byte) (n int, err error) {
-	b.mu.Lock()
-	defer b.mu.Unlock()
+	b.Lock()
+	defer b.Unlock()
 
 	// データが空の場合は書き込みをスキップ
 	if len(p) == 0 {
@@ -41,8 +41,8 @@ func (b *Buffer) WriteString(s string) (n int, err error) {
 
 // Read はバッファから内容を読み出し、バッファをクリアします
 func (b *Buffer) Read() []byte {
-	b.mu.Lock()
-	defer b.mu.Unlock()
+	b.Lock()
+	defer b.Unlock()
 
 	data := make([]byte, b.buf.Len())
 	copy(data, b.buf.Bytes())
@@ -52,24 +52,22 @@ func (b *Buffer) Read() []byte {
 
 // Len はバッファの長さを返します
 func (b *Buffer) Len() int {
-	b.mu.Lock()
-	defer b.mu.Unlock()
+	b.Lock()
+	defer b.Unlock()
 	return b.buf.Len()
 }
 
 // Reset はバッファをクリアします
 func (b *Buffer) Reset() {
-	b.mu.Lock()
-	defer b.mu.Unlock()
+	b.Lock()
+	defer b.Unlock()
 	b.buf.Reset()
 }
 
-var (
-	buf = &Buffer{
-		mu:  sync.Mutex{},
-		buf: bytes.NewBuffer([]byte{}),
-	}
-)
+var buf = &Buffer{
+	sync.Mutex{},
+	bytes.NewBuffer([]byte{}),
+}
 
 // TODO: 引数 ln chan []byte で文字列を受信した際に、グローバル変数 buf *bytes.Buffer へ書き込む
 // TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する

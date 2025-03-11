@@ -4,15 +4,18 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"curl/client"
 	"fmt"
 	"os"
+
+	"curl/client"
 
 	"github.com/spf13/cobra"
 )
 
-var method, data string
-var customHeaders = make([]string, 0)
+var (
+	method, data  string
+	customHeaders = make([]string, 0)
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
