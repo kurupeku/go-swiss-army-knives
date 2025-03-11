@@ -1,4 +1,4 @@
-# 課題 2:簡易 内容一致ファイル名検索コマンドを実装する
+# 課題 2:簡易 内容一致ファイル名検索コマンドを実装するを実装する
 
 ## コマンド仕様
 
@@ -6,6 +6,7 @@
 
 - ファイルの内容を対象に一致したファイル名を出力する
 - 出力されるファイル名はカレントディレクトリからの相対パスで表記
+- 引数を正規表現として解釈し、ファイル内の各行で一致を検証する
 - 引数を正規表現として解釈し、ファイル内の各行で一致を検証する
 - ディレクトリ内捜索を goroutine にてマルチスレッド化して非同期で行う
 - 検索範囲はデフォルトでカレントディレクトリ配下
@@ -68,15 +69,17 @@ filename2.txt
 ### 1 週目：配下のディレクトリ・ファイル検索機能の実装
 
 - 対応ファイル：`cgrep/search/dir.go`
-- 実装内容：`func (d *dir) Search()`で配下の各ディレクトリの検索を非同期で実行し、ファイル郡を`func (d *dir) GrepFiles() error`を使って内容一致検索できるように検索ロジックを実装する
+- 実装内容：`func (d *dir) Search(ctx context.Context)`で配下の各ディレクトリの検索を非同期で実行し、ファイル郡を`func (d *dir) GrepFiles() error`を使って内容一致検索できるように検索ロジックを実装する
 - 実装対象メソッド・実装条件
-  - `func (d *dir) Search()`
+  - `func (d *dir) Search(ctx context.Context)`
     - この関数は非同期で呼び出される前提の構造になっているので、引数で受け取る `d.wg` を使用してメソッドの開始と終了を知らせられるように実装する
       - `sync.WaitGroup` の使い方を事前に確認してから実装を行う
-    - `d.subDirs` がレシーバと同じ `dir` 構造体のポインターのスライスになっているので、それらの `func (d *dir) Search()` を **非同期で** 実行する
+    - `d.subDirs` がレシーバと同じ `dir` 構造体のポインターのスライスになっているので、それらの `func (d *dir) Search(ctx context.Context)` を **非同期で** 実行する
+    - 実行がキャンセルされた場合に速やかに終了できるように配慮する必要があります
+      - 引数で渡される `ctx context.Context` は実行がキャンセルされた場合に `ctx.Err() != nil` になります
     - 配下のファイル郡の検索もこの関数内で実行する
-      - ファイルの検索ロジック自体は次の `func (d *dir) GrepFiles() error` で実装する
-  - `func (d *dir) GrepFiles() error`
+      - ファイルの検索ロジック自体は次の `func (d *dir) GrepFiles(ctx context.Context) error` で実装する
+  - `func (d *dir) GrepFiles(ctx context.Context) error`
     - `d.fileFullPaths` が配下にあるファイルへのフルパスになっているので
       - ファイルを開いて
       - 内容を読み取って
@@ -107,18 +110,19 @@ filename2.txt
     - 出力結果はソートされている想定（`func (r *Result) Files() []string` を使えばソート済み）
     - 改行コードは `\n` を使用する
     - 出力フォーマットは後述
-  - `func ExecSearch(fullPath, regexpWord string) error`
+  - `func ExecSearch(ctx context.Context, fullPath, regexpWord string) error`
+    - `ctx` はキャンセルを検知するために必要なのでロジック内で渡せるメソッドにはすべて渡してあげましょう
     - `fullPath` は検索ルートへの絶対パスが渡される
       - デフォルトではカレントディレクトリになっている
     - `regexpWord` は文字列で渡されるので正規表現オブジェクトに変換する必要がある
-    - `search.New(wg *sync.WaitGroup, fullPath string, re *regexp.Regexp)` で `search.Dir` の生成と `search.Dir.Search()` の実行が必要
-    - `search.Dir.Search()` は **非同期で実行** する必要がある
-    - 実行は非同期だが、結果のレンダリングはすべての非同期関数が終了してからにする必要がある
+    - `search.New(wg *sync.WaitGroup, fullPath string, re *regexp.Regexp)` で `search.Dir` の生成と `search.Dir.Search(ctx context.Context)` の実行が必要
+    - `search.Dir.Search(ctx context.Context)` は **非同期で実行** する必要がある
+      - 検索の実行は非同期だが、結果のレンダリングはすべての非同期関数が終了してからにする必要がある
     - エラーが発生したらすぐに返す
   - `func Render(w io.Writer)`
     - 結果を標準出力に出力するための関数
     - 標準出力は `w io.Writer` として渡される想定
-    - グローバル変数 `withContent` が `true` の場合は一致した内容も表示、 `false` の場合はファイル名のみを表示できるようにする
+    - 内容を表示するコマンドフラグを渡された場合は一致した内容も表示、 そうでない場合はファイル名のみを表示できるようにする
 
 #### RenderFiles の出力フォーマット
 

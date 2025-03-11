@@ -83,9 +83,14 @@ func (d *dir) Search(ctx context.Context) {
 	// ヒント：
 	// - このメソッド自体は goroutine として実行される前提で設計しています
 	// . - すべての非同期処理が完了するまで待ち合わせるためにはどうするか考えてみましょう
+	// . - ctx がキャンセルされた場合に非同期処理もキャンセル可能な形で実装する必要があります
 	//   - dir.wg の型である sync.WaitGroup の使い方を調べてみましょう
 	// - エラーは errors パッケージを使用して処理します
 	defer d.wg.Done()
+
+	if ctx.Err() != nil {
+		return
+	}
 
 	// サブディレクトリの検索を非同期で実行
 	for _, subDir := range d.subDirs {
@@ -94,14 +99,18 @@ func (d *dir) Search(ctx context.Context) {
 	}
 
 	// ファイル内容の検索
-	if err := d.GrepFiles(); err != nil {
+	if err := d.GrepFiles(ctx); err != nil {
 		errors.Set(err)
 	}
 }
 
 // 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索するメソッド
-func (d *dir) GrepFiles() error {
+func (d *dir) GrepFiles(ctx context.Context) error {
 	for _, path := range d.fileFullPaths {
+		if ctx.Err() != nil {
+			return nil
+		}
+
 		if err := func(path string) error {
 			// TODO: Implement here
 			// 以下の処理を実装する必要があります：

@@ -75,9 +75,11 @@ func ExecSearch(ctx context.Context, fullPath, regexpWord string) error {
 	//    - 指定されたディレクトリに対して検索処理を開始する
 	//    - 検索処理は非同期で実行し、完了を待ち合わせる
 	//    - ctx がキャンセルされた場合に非同期処理もキャンセル可能な形で実装する
-	//
 	// ヒント：
-	// - 正規表現のコンパイルはコストの高い処理なので、一度だけ行うようにしましょう
+	// - 非同期処理は終了を待たないと期待通りに動作しません
+	// - キャンセル処理には context.Context を使用します
+	//   - context.Context は非常によく使われるので、これを期に理解を深めましょう
+	// - 正規表現のコンパイルには regexp パッケージを使用します
 
 	re, err := regexp.Compile(regexpWord)
 	if err != nil {

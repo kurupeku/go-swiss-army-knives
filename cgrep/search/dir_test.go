@@ -263,7 +263,7 @@ func Test_dir_GrepFiles(t *testing.T) {
 				tt.setup(tt.want)
 			}
 
-			tt.assertion(t, d.GrepFiles())
+			tt.assertion(t, d.GrepFiles(context.Background()))
 			assert.Equal(t, tt.want, result.Store)
 			result.Reset()
 		})
