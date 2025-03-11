@@ -1,11 +1,13 @@
 package search
 
 import (
-	"cgrep/result"
+	"context"
 	"path/filepath"
 	"regexp"
 	"sync"
 	"testing"
+
+	"cgrep/result"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -24,7 +26,7 @@ type testMockDir struct {
 	called bool
 }
 
-func (d *testMockDir) Search() {
+func (d *testMockDir) Search(_ context.Context) {
 	defer d.wg.Done()
 	d.called = true
 }
@@ -201,7 +203,7 @@ func Test_dir_Search(t *testing.T) {
 			}
 
 			wg.Add(1)
-			go d.Search()
+			go d.Search(context.Background())
 			wg.Wait()
 
 			assert.Equal(t, tt.want, result.Store)

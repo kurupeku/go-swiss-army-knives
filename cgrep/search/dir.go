@@ -1,11 +1,15 @@
 package search
 
 import (
+	"bufio"
 	"context"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sync"
+
+	"cgrep/errors"
+	"cgrep/result"
 )
 
 var (
@@ -32,7 +36,11 @@ func New(wg *sync.WaitGroup, fullPath string, re *regexp.Regexp) (Dir, error) {
 		return d, nil
 	}
 
-	d.Scan()
+	err := d.Scan()
+	if err != nil {
+		return nil, err
+	}
+
 	return d, nil
 }
 
@@ -61,22 +69,62 @@ func (d *dir) Scan() error {
 }
 
 // TODO: サブディレクトリの検索を非同期で行う
-// TODO: 非同期処理の開始を d.wg に知らせるようにする
-// TODO: 自身も非同期で実行される想定なので d.wg に処理完了を知らせる
+// TODO: 非同期で実行される想定なのでメソッドの実行完了時に d.wg に処理完了を知らせる
+// TODO: 配下のディレクトリ検索時に非同期処理の開始を d.wg に知らせるようにする
 // TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
 // TODO: エラーが発生したら errors.Set(err error) に投げる
 func (d *dir) Search(ctx context.Context) {
-	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	defer d.wg.Done()
+
+	// サブディレクトリの検索を非同期で実行
+	for _, subDir := range d.subDirs {
+		d.wg.Add(1)
+		go subDir.Search(ctx)
+	}
+
+	// ファイル内容の検索
+	if err := d.GrepFiles(); err != nil {
+		errors.Set(err)
+	}
 }
 
-// TODO: 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
-// TODO: 配下のファイルは d.fileFullPaths にフルパスの []string として保存されている
-// TODO: d.regexp に一致させたい正規表現が保存されているのでファイル内の文字列が一致するか検証する
-// TODO: 一致した場合はファイル名、一致した行の内容、行番号を result.Set() に渡して保存する
-// TODO: ファイル名は検索ルートからの相対パスを添えて保存する
-// TODO: エラーが発生したら即時リターンする
+// 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
 func (d *dir) GrepFiles() error {
-	// TODO: 1 週目：配下のディレクトリ・ファイル検索機能の実装
+	for _, path := range d.fileFullPaths {
+		if err := func(path string) error {
+			// 対象のファイルを開く
+			file, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer file.Close()
+
+			// 相対パスを取得
+			relPath, err := relativePath(file)
+			if err != nil {
+				return err
+			}
+
+			scanner := bufio.NewScanner(file)
+			scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
+			lineNo := 0
+			for scanner.Scan() {
+				lineNo++
+				line := scanner.Text()
+				if d.regexp.MatchString(line) {
+					result.Set(relPath, line, lineNo)
+				}
+			}
+
+			if err := scanner.Err(); err != nil {
+				return err
+			}
+
+			return nil
+		}(path); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

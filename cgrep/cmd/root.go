@@ -4,18 +4,25 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"cgrep/errors"
 	"context"
 	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"regexp"
+	"sync"
+
+	"cgrep/errors"
+	"cgrep/result"
+	"cgrep/search"
 
 	"github.com/spf13/cobra"
 )
 
-var dir string
-var withContent bool
+var (
+	dir         string
+	withContent bool
+)
 
 var rootCmd = &cobra.Command{
 	Use:   "cgrep [flags] [args]",
@@ -58,7 +65,18 @@ Args:
 // TODO: すべての検索処理が終わるまで処理をブロックして完了を待つ
 // TODO: エラー発生時は即時リターンする
 func ExecSearch(ctx context.Context, fullPath, regexpWord string) error {
-	// TODO: 1週目: 検索実施ロジックの実装
+	re := regexp.MustCompile(regexpWord)
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	dir, err := search.New(&wg, fullPath, re)
+	if err != nil {
+		return err
+	}
+
+	go dir.Search(ctx)
+	wg.Wait()
+
 	return nil
 }
 
@@ -66,7 +84,11 @@ func ExecSearch(ctx context.Context, fullPath, regexpWord string) error {
 // TODO: 標準出力は引数 w io.Writer として渡される想定
 // TODO: グローバル変数 withContent が false の場合はファイル名のみ、 true の場合は内容も出力する
 func Render(w io.Writer) {
-	// TODO: 2 週目：検索結果のレンダリング & コマンド実行時のメイン処理の実装
+	if withContent {
+		result.RenderWithContent(w)
+		return
+	}
+	result.RenderFiles(w)
 }
 
 func Execute() {

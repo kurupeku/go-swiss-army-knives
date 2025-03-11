@@ -151,7 +151,6 @@ func TestRenderFiles(t *testing.T) {
 			RenderFiles(buf)
 
 			assert.Equal(t, tt.want, buf.String())
-
 		})
 	}
 }
