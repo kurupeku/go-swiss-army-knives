@@ -186,3 +186,6 @@ murl/murl
 cgrep/cgrep
 logtransfer/logtransfer
 logtransfer/lt
+
+# ignore ai agent config
+.clinerules
