@@ -17,45 +17,33 @@ type HttpClient struct {
 	requestHeader map[string][]string
 }
 
-// TODO: NewHttpClientで必要な実装
-// 1. URLの構築
-//   - net/urlパッケージのParseRequestURIでURLを構築する
-//
-// 2. リクエストヘッダの設定
-//
-//   - customHeadersの内容をrequestHeaderマップに設定する
-//
-//   - 形式：map[string]string{"Header-Name": "header-value"}
-//
-//     3. HTTPメソッドとボディの設定
-//     GET/DELETEの場合:
-//
-//   - requestBodyはnil
-//
-//   - Content-Typeヘッダーは含めない（存在する場合は削除）
-//     POST/PUT/PATCHの場合:
-//
-//   - Content-Typeヘッダーを"application/json"に設定
-//
-//   - requestBodyにdataを設定
-//
-//   - dataが空文字列の場合はエラーを返す
+// HTTP リクエストを送信するためのクライアントを生成する関数
 func NewHttpClient(
 	rawurl string,
 	method string,
 	data string,
 	customHeaders []string,
 ) (*HttpClient, error) {
-	// 各パラメータのバリデーション
-	if err := validateRawURL(rawurl); err != nil {
-		return nil, err
-	}
-	if err := validateMethod(method); err != nil {
-		return nil, err
-	}
-	if err := validateHeader(customHeaders); err != nil {
-		return nil, err
-	}
+	// TODO: Implement here
+	// HTTPクライアントを初期化する処理を実装してください：
+	// 1. 引数の検証
+	//    - method が HTTP メソッド（GET, POST, PUT, DELETE, PATCH）として有効か確認
+	//    - method が空文字列でないことを確認
+	//    - エラーの場合は適切なエラーメッセージを返却
+	//
+	// 2. メソッドに応じたリクエストボディとヘッダーの設定
+	//    - GET, DELETE の場合:
+	//      * リクエストボディは不要 (nil)
+	//      * Content-Type ヘッダーを削除
+	//    - POST, PUT, PATCH の場合:
+	//      * リクエストボディが必須（空文字列の場合はエラー）
+	//      * Content-Type ヘッダーを "application/json" に設定
+	//
+	// ヒント：
+	// - http パッケージには標準的な HTTP メソッドが定数として定義されています
+	// - errors.New() を使用してカスタムエラーを生成できます
+	// - 実装の参考として http パッケージのドキュメントを確認することをお勧めします
+	// - switch 文を使用してメソッドごとの処理を分岐させることができます
 
 	// URLの構築
 	parsedURL, err := url.ParseRequestURI(rawurl)
@@ -79,20 +67,18 @@ func NewHttpClient(
 	// メソッドに応じた処理
 	switch method {
 	case http.MethodGet, http.MethodDelete:
-		// GET/DELETEの場合はボディなしでContent-Typeヘッダーを削除
+		// GET / DELETE の場合はボディなしでContent-Typeヘッダーを削除
 		delete(headers, "Content-Type")
 		requestBody = nil
 	case http.MethodPost, http.MethodPut, http.MethodPatch:
-		// POST/PUT/PATCHの場合
+		// POST / PUT / PATCH の場合は Content-Type ヘッダーとリクエストボディが必要
 		if data == "" {
 			return nil, errors.New("request body is required")
 		}
-		// JSONデータのバリデーション
-		if err := validateData(data); err != nil {
-			return nil, err
-		}
 		headers["Content-Type"] = []string{"application/json"}
 		requestBody = &data
+	default:
+		return nil, errors.New("unsupported HTTP method")
 	}
 
 	return &HttpClient{
@@ -104,6 +90,22 @@ func NewHttpClient(
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
+	// TODO: Implement here
+	// HTTPリクエストを実行し、リクエストとレスポンスの文字列表現を返却する処理を実装してください：
+	// 1. BuildRequest() を使用してリクエストを生成
+	// 2. リクエスト実行とエラーハンドリング
+	//    - http.DefaultClient.Do(req) でリクエストを送信
+	//    - エラーの場合は空文字列とエラーを返却
+	// 3. リソースのクリーンアップ
+	//    - レスポンスボディは必ず Close すること（defer を使用）
+	// 4. レスポンスの文字列化
+	//    - CreateRequestText() でリクエスト情報を文字列化
+	//    - CreateResponseText() でレスポンス情報を文字列化
+	//
+	// ヒント：
+	// - http.Response.Body は io.ReadCloser インターフェースを実装しています
+	// - レスポンスボディの Close 漏れは重大なリソースリークの原因となります
+
 	// リクエストの生成
 	req, err := c.BuildRequest()
 	if err != nil {
@@ -147,8 +149,25 @@ func (c *HttpClient) BuildRequest() (*http.Request, error) {
 	return req, nil
 }
 
-// TODO:リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
+// リクエストURL,HTTPメソッド,リクエストヘッダを所定のフォーマットで返却
 func CreateRequestText(req *http.Request) string {
+	// TODO: Implement here
+	// 以下の順序で情報を文字列化してください：
+	// 1. リクエストセクションの開始
+	//    - "\n===Request===\n" で開始（前後に改行）
+	// 2. URL
+	//    - [URL] の後に req.URL.String() の値を表示
+	// 3. HTTPメソッド
+	//    - [Method] の後に req.Method の値を表示
+	// 4. ヘッダー
+	//    - [Headers] の次行にヘッダー情報を一覧表示
+	//    - ヘッダーキーを昇順でソート（sortedKeys()関数を使用）
+	//    - 各ヘッダーは "  {key}: {value}" の形式で表示（先頭に2つの空白）
+	//    - ヘッダー値が複数ある場合は "; " で結合
+	//
+	// ヒント：
+	// - 文字列の操作には strings パッケージなどを利用すると便利です
+
 	var b strings.Builder
 
 	// 最初に空行
@@ -174,8 +193,26 @@ func CreateRequestText(req *http.Request) string {
 	return b.String()
 }
 
-// TODO:レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
+// レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
 func CreateResponseText(res *http.Response) string {
+	// TODO: Implement here
+	// 以下の順序で情報を文字列化してください：
+	// 1. レスポンスセクションの開始
+	//    - "\n===Response===\n" で開始（前後に改行）
+	// 2. ステータスコード
+	//    - [Status] の後に res.StatusCode を表示
+	// 3. ヘッダー
+	//    - [Headers] の次行にヘッダー情報を一覧表示
+	//    - ヘッダーキーを昇順でソート（sortedKeys()関数を使用）
+	//    - 各ヘッダーは "  {key}: {value}" の形式で表示（先頭に2つの空白）
+	//    - ヘッダー値が複数ある場合は "; " で結合
+	// 4. ボディ
+	//    - [Body] の次行にレスポンスボディを表示
+	// .  - ボディが空の場合は改行のみを表示
+	//
+	// ヒント：
+	// - 文字列の操作には strings パッケージなどを利用すると便利です
+
 	var b strings.Builder
 
 	// 最初に空行とタイトル

@@ -7,13 +7,13 @@ import (
 	"time"
 )
 
-// Buffer は同期制御されたバッファを提供します
+// 同期制御を前提としたカスタムバッファ
 type Buffer struct {
 	sync.Mutex
 	buf *bytes.Buffer
 }
 
-// Write はバッファにデータを書き込みます
+// バッファに対してスレッドセーフな書き込みを行う
 func (b *Buffer) Write(p []byte) (n int, err error) {
 	b.Lock()
 	defer b.Unlock()
@@ -35,11 +35,12 @@ func (b *Buffer) Write(p []byte) (n int, err error) {
 	return b.buf.Write(got)
 }
 
+// バッファに対してスレッドセーフな文字列書き込みを行う
 func (b *Buffer) WriteString(s string) (n int, err error) {
 	return b.Write([]byte(s))
 }
 
-// Read はバッファから内容を読み出し、バッファをクリアします
+// バッファからスレッドセーフな読み込みを行う
 func (b *Buffer) Read() []byte {
 	b.Lock()
 	defer b.Unlock()
@@ -50,14 +51,14 @@ func (b *Buffer) Read() []byte {
 	return data
 }
 
-// Len はバッファの長さを返します
+// 保存されたデータの長さを返す
 func (b *Buffer) Len() int {
 	b.Lock()
 	defer b.Unlock()
 	return b.buf.Len()
 }
 
-// Reset はバッファをクリアします
+// バッファをリセットする
 func (b *Buffer) Reset() {
 	b.Lock()
 	defer b.Unlock()
@@ -69,10 +70,10 @@ var buf = &Buffer{
 	bytes.NewBuffer([]byte{}),
 }
 
-// TODO: 引数 ln chan []byte で文字列を受信した際に、グローバル変数 buf *bytes.Buffer へ書き込む
-// TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
-// TODO: エラーが発生した際には errc chan error へエラーを送信する
+// ln から受け取ったデータを buf へ書き込む関数
 func Listen(ctx context.Context, ln chan []byte, errc chan error) {
+	// TODO: Implement here
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -89,13 +90,10 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 	}
 }
 
-// TODO: グローバル変数 buf *bytes.Buffer から一定時間ごとに内容を読み込み、内容を引数 out chan []byte へ送信する
-// TODO: 読み込む間隔は引数 span time.Duration を利用して制御する
-// TODO: buf に何も保存されていなければ内容の送信は行わない
-// TODO: 一度に保存された内容すべてを読み取り、 buf にはなにも保存されていない状態にリセットする
-// TODO: ctx context.Context がキャンセルされた場合には速やかに関数を終了する
-// TODO: エラーが発生した際には errc chan error へエラーを送信する
+// グローバル変数 buf から一定間隔（spanで指定される）でデータを読み込み、空行や空白文字のみの行をスキップして out へ送信する関数
 func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration) {
+	// TODO: Implement here
+
 	ticker := time.NewTicker(span)
 	defer ticker.Stop()
 

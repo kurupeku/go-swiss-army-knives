@@ -8,6 +8,7 @@ import (
 
 const errorFilePath = "error.log"
 
+// 各 goroutine からのエラーを受け取り、 `error.log` ファイルに書き込む関数
 func Error(ctx context.Context, errc chan error) error {
 	ef, err := os.Create(errorFilePath)
 	if err != nil {

@@ -67,19 +67,17 @@ e.g ) logtransfer https://sample.com sh ./sample.sh`,
 	},
 }
 
-// TODO: シグナル（SIGTERM など）が呼ばれた際に、それを検知してキャンセル処理が走る context.Context を用意する
-// TODO: context.CancelFunc も同時に返す
+// シグナル（SIGTERM など）が呼ばれた際に、それを検知してキャンセル処理が走る context.Context を用意する関数
 func NewCtx() (context.Context, context.CancelFunc) {
+	// TODO: Implement here
+
 	return signal.NotifyContext(context.Background(), os.Interrupt)
 }
 
-// TODO: すべての処理を goroutine にて発火させる
-// TODO: 渡す channel のサイズは定数 channelLen を使用して定義する
-// TODO: 各関数に渡す context.Context は引数 ctx context.Context を使用する
-// TODO: 標準出力は r io.Reader として渡される
-// TODO: storage.Load() の実行間隔は定数 timeSpan を利用して渡す
-// TODO: output.Forward() の送信先 URL は引数 u *url.URL を使用して渡す
+// コアロジック群をバックグラウンドでの処理を開始する関数
 func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader) {
+	// TODO: Implement here
+
 	var (
 		ln   = make(chan []byte, channelLen)
 		out  = make(chan []byte, channelLen)

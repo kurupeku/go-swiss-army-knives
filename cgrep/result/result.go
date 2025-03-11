@@ -31,21 +31,20 @@ func Set(fileName, txt string, no int) {
 	Store.Data[fileName] = append(Store.Data[fileName], Line{txt, no})
 }
 
-// TODO: ファイル名のみを標準出力に出力する
-// TODO: ファイル名は昇順で出力する
-// TODO: 標準出力は引数 w io.Writer として渡される想定
+// Store に保存されているファイル名のみを出力する関数
 func RenderFiles(w io.Writer) {
+	// TODO: Implement here
+
 	files := Store.Files()
 	for _, file := range files {
 		fmt.Fprintln(w, file)
 	}
 }
 
-// TODO: ファイル名と一致した行番号、一致した行の標準出力に出力する
-// TODO: ファイル名は昇順で出力する
-// TODO: 出力フォーマットは README.md を参照
-// TODO: 標準出力は引数 w io.Writer として渡される想定
+// Store に保存されているファイル名と一致した行の内容、行番号を出力する関数
 func RenderWithContent(w io.Writer) {
+	// TODO: Implement here
+
 	files := Store.Files()
 	for i, file := range files {
 		// ファイル名を出力
@@ -75,6 +74,7 @@ func (r *Result) Files() []string {
 	return files
 }
 
+// 保存されている検索結果をリセットする関数
 func Reset() {
 	Store = &Result{Data: make(map[string][]Line, 100)}
 }

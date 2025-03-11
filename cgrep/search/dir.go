@@ -68,12 +68,9 @@ func (d *dir) Scan() error {
 	return nil
 }
 
-// TODO: サブディレクトリの検索を非同期で行う
-// TODO: 非同期で実行される想定なのでメソッドの実行完了時に d.wg に処理完了を知らせる
-// TODO: 配下のディレクトリ検索時に非同期処理の開始を d.wg に知らせるようにする
-// TODO: 配下のファイル郡の内容一致検索用メソッド d.GrepFiles() を実行する
-// TODO: エラーが発生したら errors.Set(err error) に投げる
+// 対象ディレクトリ内のファイルの内容を正規表現で検索し、サブディレクトリに対して再帰的に検索を行うメソッド
 func (d *dir) Search(ctx context.Context) {
+	// TODO: Implement here
 	defer d.wg.Done()
 
 	// サブディレクトリの検索を非同期で実行
@@ -88,10 +85,12 @@ func (d *dir) Search(ctx context.Context) {
 	}
 }
 
-// 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索する
+// 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索するメソッド
 func (d *dir) GrepFiles() error {
 	for _, path := range d.fileFullPaths {
 		if err := func(path string) error {
+			// TODO: Implement here
+
 			// 対象のファイルを開く
 			file, err := os.Open(path)
 			if err != nil {
