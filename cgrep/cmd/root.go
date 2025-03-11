@@ -62,8 +62,28 @@ Args:
 // 検索処理を非同期で実行する関数
 func ExecSearch(ctx context.Context, fullPath, regexpWord string) error {
 	// TODO: Implement here
+	// 以下の処理を実装する必要があります：
+	// 1. 検索文字列のバリデーション
+	//    - 引数として渡された文字列を正規表現としてコンパイルする
+	//    - 不正な正規表現の場合はエラーを返す
+	//
+	// 2. 非同期検索の準備
+	//    - 複数の検索処理を並行して実行できるよう、同期の仕組みを用意する
+	//    - 全ての検索処理の完了を待ち合わせられるようにする
+	//
+	// 3. 検索の実行
+	//    - 指定されたディレクトリに対して検索処理を開始する
+	//    - 検索処理は非同期で実行し、完了を待ち合わせる
+	//    - ctx がキャンセルされた場合に非同期処理もキャンセル可能な形で実装する
+	//
+	// ヒント：
+	// - 正規表現のコンパイルはコストの高い処理なので、一度だけ行うようにしましょう
 
-	re := regexp.MustCompile(regexpWord)
+	re, err := regexp.Compile(regexpWord)
+	if err != nil {
+		return err
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -81,6 +101,17 @@ func ExecSearch(ctx context.Context, fullPath, regexpWord string) error {
 // 検索結果を出力する関数
 func Render(w io.Writer) {
 	// TODO: Implement here
+	// 以下の処理を実装する必要があります：
+	// 1. フラグに基づく出力内容の決定
+	//    - フラグの状態を確認し、ユーザーが要求した出力形式を判断する
+	//
+	// 2. 適切な形式での出力
+	//    - マッチしたファイルの一覧のみを表示するか
+	//    - マッチした行の内容も含めて表示するか
+	//
+	// ヒント：
+	// - フラグがどこに格納されているかは CLI ライブラリのドキュメントを参照しましょう
+	//   - https://github.com/spf13/cobra
 
 	if withContent {
 		result.RenderWithContent(w)
