@@ -9,12 +9,28 @@ tasks:
     cmds:
       - go test -v ./...
 
+  test_murl_1:
+    desc: Execute test only 1st subjects at murl package
+    cmds:
+      - task: test_murl_fn
+        vars:
+          CLI_ARGS: NewHttpClient
+
+  test_murl_2:
+    desc: Execute test only 2nd subjects at murl package
+    cmds:
+      - task: test_murl_fn
+        vars:
+          CLI_ARGS: Execute
+      - task: test_murl_fn
+        vars:
+          CLI_ARGS: Create
+
   test_murl_fn:
     desc: Execute test only single function at murl package
     dir: ./murl
     cmds:
       - go test -v -run {{.CLI_ARGS}} ./...
-    silent: true
 
   build_murl:
     desc: Build murl cli as murl (for local OS and ARCH)
@@ -29,12 +45,31 @@ tasks:
     cmds:
       - go test -v -timeout 15s ./...
 
+  test_cgrep_1:
+    desc: Execute test only 1st subjects at cgrep package
+    cmds:
+      - task: test_cgrep_fn
+        vars:
+          CLI_ARGS: Search
+      - task: test_cgrep_fn
+        vars:
+          CLI_ARGS: GrepFiles
+
+  test_cgrep_2:
+    desc: Execute test only 2nd subjects at cgrep package
+    cmds:
+      - task: test_cgrep_fn
+        vars:
+          CLI_ARGS: Render
+      - task: test_cgrep_fn
+        vars:
+          CLI_ARGS: ExecSearch
+
   test_cgrep_fn:
     desc: Execute test only single function at cgrep package
     dir: ./cgrep
     cmds:
       - go test -v -timeout 15s -run {{.CLI_ARGS}} ./...
-    silent: true
 
   build_cgrep:
     desc: Build cgrep cli (for local OS and ARCH)
@@ -48,14 +83,36 @@ tasks:
     dir: ./logtransfer
     cmds:
       - go test -v -timeout 15s ./...
-    silent: true
+
+  test_lt_1:
+    desc: Execute test only 1st subjects at logtransfer package
+    cmds:
+      - task: test_lt_fn
+        vars:
+          CLI_ARGS: Monitor
+
+  test_lt_2:
+    desc: Execute test only 2nd subjects at logtransfer package
+    cmds:
+      - task: test_lt_fn
+        vars:
+          CLI_ARGS: Listen
+      - task: test_lt_fn
+        vars:
+          CLI_ARGS: Load
+
+  test_lt_3:
+    desc: Execute test only 3rd subjects at logtransfer package
+    cmds:
+      - task: test_lt_fn
+        vars:
+          CLI_ARGS: Forward
 
   test_lt_fn:
     desc: Execute test only single function at logtransfer package
     dir: ./logtransfer
     cmds:
       - go test -v -timeout 15s -run {{.CLI_ARGS}} ./...
-    silent: true
 
   build_lt:
     desc: Build logtransfer cli as lt (for local OS and ARCH)

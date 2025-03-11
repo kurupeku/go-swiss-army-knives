@@ -1,4 +1,4 @@
-name: murl 3 Testing
+name: murl 1 Testing
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ on:
       - "murl/**/**.go"
 
 env:
-  TARGET: murl-3
+  TARGET: murl-1
   APP: murl
 
 jobs:
@@ -25,5 +25,4 @@ jobs:
         name: Go Test
         working-directory: ./${{ env.APP }}
         run: |
-          go test -v -run CreateRequestText ./...
-          go test -v -run CreateResponseText ./...
+          go test -v -run NewHttpClient ./client/...
