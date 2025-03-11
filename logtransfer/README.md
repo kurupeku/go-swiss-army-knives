@@ -34,56 +34,38 @@ logtransfer https://sample.com sh ./sample.sh
 
 ### 1 週目：標準出力（`io.Reader` として受け取る）から出力内容を読み取る処理と、読み取った結果を内部のバッファに保存する処理
 
-- 対応ファイル： `logtransfer/input/watcher.go` および `logtransfer/storage/buffer.go`
-- 実装内容： `func Monitor(ctx context.Context, ln chan []byte, errc chan error, r io.Reader)`
-  で標準出力を転送し `func Listen(ctx context.Context, ln chan []byte, errc chan error)` で内部のバッファに保存
+- 対応ファイル： `logtransfer/input/watcher.go`
 - 実装対象メソッド・実装条件
   - `func Monitor(ctx context.Context, ln chan []byte, errc chan error, r io.Reader)`
-    - 引数 `r io.Reader` とｓて標準出力が渡されてくるので、入力を待ち受ける
+    - 引数 `r io.Reader` として標準出力が渡されてくるので、入力を待ち受ける
     - 入力があった場合は 1 行だけ読み込み、その文字列を引数 `ln chan []byte` へ送信した後、待受状態に戻る
     - `ctx context.Context` がキャンセルされた場合には `ln` を close し、速やかに関数を終了する
     - エラーが発生した際には引数 `errc chan error` へエラーを送信する
+
+### 2 週目：読み取った結果を内部のバッファに保存する処理と内部バッファに保存された内容を一定時間ごとに読み込む処理
+
+- 対応ファイル： `logtransfer/storage/buffer.go`
+- 実装対象メソッド・実装条件
   - `func Listen(ctx context.Context, ln chan []byte, errc chan error)`
-    - 引数 `ln chan []byte` で文字列を受信した際に、グローバル変数 `buf *bytes.Buffer` へ書き込む
+    - 引数 `ln chan []byte` で文字列を受信した際に、グローバル変数 `buf *Buffer` へ書き込む
     - `ctx context.Context` がキャンセルされた場合には速やかに関数を終了する
     - エラーが発生した際には `errc chan error` へエラーを送信する
-
-### 2 週目：内部バッファに保存された内容を一定時間ごとに読み込む処理と、読み取った文字列を Body とした HTTP#POST リクエストを投げる処理
-
-- 対応ファイル： `logtransfer/storage/buffer.go` および `logtransfer/output/http.go`
-- 実装内容： `func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration)`
-  で一定時間ごとにバッファを読み込み `func Forward(ctx context.Context, out chan []byte, errc chan error, url string)` リクエストとして送信する
-- 実装対象メソッド・実装条件
   - `func Load(ctx context.Context, out chan []byte, errc chan error, span time.Duration)`
-    - グローバル変数 `buf *bytes.Buffer` から一定時間ごとに内容を読み込み、内容を引数 `out chan []byte` へ送信する
+    - グローバル変数 `buf *Buffer` から一定時間ごとに内容を読み込み、内容を引数 `out chan []byte` へ送信する
     - 読み込む間隔は引数 `span time.Duration` を利用して制御する
     - `buf` に何も保存されていなければ内容の送信は行わない
-    - 一度に保存された内容すべてを読み取り、 `buf` にはなにも保存されていない状態にリセットする
     - `ctx context.Context` がキャンセルされた場合には `out` を close し、速やかに関数を終了する
     - エラーが発生した際には `errc chan error` へエラーを送信する
+
+### 3 週目：一定間隔でバッファから読み取った内容を Body とした HTTP#POST リクエストを投げる処理
+
+- 対応ファイル： `logtransfer/output/http.go`
+- 実装対象メソッド・実装条件
   - `func Forward(ctx context.Context, out chan []byte, errc chan error, url string)`
     - 引数 `out chan []byte` で文字列を受信した際に、その内容 Body として引数 `url string` への HTTP#POST リクエストを行う
     - `Content-Type: plain/text` を Header に添えて送信を行う
     - `ctx context.Context` がキャンセルされた場合には速やかに関数を終了する
     - エラーが発生した際には `errc chan error` へエラーを送信する
-
-### 3 週目：1 ~ 2 週目の処理を別スレッドで実行しつつ、シグナルを受け取った際にそれらを安全に終了させるメイン処理
-
-- 対応ファイル： `logtransfer/cmd/root.go`
-- 実装内容: `func NewCtx() (context.Context, context.CancelFunc)`
-  でシグナルを検知した際にキャンセルが伝播するコンテキストを用意し, `func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader)` にて 1 ~
-  2 週目に実装したメソッド郡を goroutine で起動する
-- 実装対象メソッド・実装条件
-  - `func NewCtx() (context.Context, context.CancelFunc)`
-    - シグナル（`SIGTERM` など）が呼ばれた際に、それを検知してキャンセル処理が走る `context.Context` を用意する
-    - `context.CancelFunc` も同時に返す
-  - `func StartBackgrounds(ctx context.Context, u *url.URL, r io.Reader)`
-    - すべての処理を goroutine にて発火させる
-    - 渡す channel のサイズは定数 `channelLen` を使用して定義する
-    - 各関数に渡す `context.Context` は引数 `ctx context.Context` を使用する
-    - 標準出力は `r io.Reader` として渡される
-    - `storage.Load()` の実行間隔は定数 `timeSpan` を利用して渡す
-    - `output.Forward()` の送信先 URL は引数 `u *url.URL` を使用して渡す
 
 ## 動作プレビュー
 
