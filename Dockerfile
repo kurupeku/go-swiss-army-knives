@@ -1,6 +1,6 @@
 FROM golang:bullseye
 
-LABEL maintainer "kurupeku <y.u.kurupeku@gmail.com>"
+LABEL maintainer "kurupeku <22340645+kurupeku@users.noreply.github.com>"
 
 ENV GOENV dev
 ENV GOPATH /go
