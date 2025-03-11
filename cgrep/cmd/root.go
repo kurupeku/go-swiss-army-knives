@@ -9,12 +9,8 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"regexp"
-	"sync"
 
 	"cgrep/errors"
-	"cgrep/result"
-	"cgrep/search"
 
 	"github.com/spf13/cobra"
 )
@@ -80,23 +76,6 @@ func ExecSearch(ctx context.Context, fullPath, regexpWord string) error {
 	// - キャンセル処理には context.Context を使用します
 	//   - context.Context は非常によく使われるので、これを期に理解を深めましょう
 	// - 正規表現のコンパイルには regexp パッケージを使用します
-
-	re, err := regexp.Compile(regexpWord)
-	if err != nil {
-		return err
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	dir, err := search.New(&wg, fullPath, re)
-	if err != nil {
-		return err
-	}
-
-	go dir.Search(ctx)
-	wg.Wait()
-
 	return nil
 }
 
@@ -114,12 +93,6 @@ func Render(w io.Writer) {
 	// ヒント：
 	// - フラグがどこに格納されているかは CLI ライブラリのドキュメントを参照しましょう
 	//   - https://github.com/spf13/cobra
-
-	if withContent {
-		result.RenderWithContent(w)
-		return
-	}
-	result.RenderFiles(w)
 }
 
 func Execute() {

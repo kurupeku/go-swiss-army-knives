@@ -1,7 +1,6 @@
 package input
 
 import (
-	"bufio"
 	"context"
 	"io"
 )
@@ -25,20 +24,4 @@ func Monitor(ctx context.Context, ln chan []byte, errc chan error, r io.Reader) 
 	// ヒント：
 	// - io.Reader からの効率的な読み取りには bufio パッケージが有用です
 	// - コンテキストによる制御は select 文と組み合わせることで実現できます
-	defer close(ln)
-
-	scanner := bufio.NewScanner(r)
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			if scanner.Scan() {
-				ln <- scanner.Bytes()
-			}
-			if err := scanner.Err(); err != nil {
-				errc <- err
-			}
-		}
-	}
 }

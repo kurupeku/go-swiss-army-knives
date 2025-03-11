@@ -1,15 +1,11 @@
 package search
 
 import (
-	"bufio"
 	"context"
 	"os"
 	"path/filepath"
 	"regexp"
 	"sync"
-
-	"cgrep/errors"
-	"cgrep/result"
 )
 
 var (
@@ -86,22 +82,6 @@ func (d *dir) Search(ctx context.Context) {
 	// . - ctx がキャンセルされた場合に非同期処理もキャンセル可能な形で実装する必要があります
 	//   - dir.wg の型である sync.WaitGroup の使い方を調べてみましょう
 	// - エラーは errors パッケージを使用して処理します
-	defer d.wg.Done()
-
-	if ctx.Err() != nil {
-		return
-	}
-
-	// サブディレクトリの検索を非同期で実行
-	for _, subDir := range d.subDirs {
-		d.wg.Add(1)
-		go subDir.Search(ctx)
-	}
-
-	// ファイル内容の検索
-	if err := d.GrepFiles(ctx); err != nil {
-		errors.Set(err)
-	}
 }
 
 // 配下のファイルの内容を読み取り、正規表現に一致するファイルを検索するメソッド
@@ -126,35 +106,6 @@ func (d *dir) GrepFiles(ctx context.Context) error {
 			// . - エラーで return された場合でも必ずです
 			// - path は絶対パスで渡されます
 			// - 余裕があれば、読み込むファイルのサイズが大きい場合なども考慮できると素晴らしいです
-
-			// 対象のファイルを開く
-			file, err := os.Open(path)
-			if err != nil {
-				return err
-			}
-			defer file.Close()
-
-			// 相対パスを取得
-			relPath, err := relativePath(file)
-			if err != nil {
-				return err
-			}
-
-			scanner := bufio.NewScanner(file)
-			scanner.Buffer(make([]byte, 1024*1024), 1024*1024)
-			lineNo := 0
-			for scanner.Scan() {
-				lineNo++
-				line := scanner.Text()
-				if d.regexp.MatchString(line) {
-					result.Set(relPath, line, lineNo)
-				}
-			}
-
-			if err := scanner.Err(); err != nil {
-				return err
-			}
-
 			return nil
 		}(path); err != nil {
 			return err

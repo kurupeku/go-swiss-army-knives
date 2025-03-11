@@ -1,7 +1,6 @@
 package result
 
 import (
-	"fmt"
 	"io"
 	"sort"
 	"sync"
@@ -45,11 +44,6 @@ func RenderFiles(w io.Writer) {
 	//
 	// ヒント：
 	// - ファイル名をソート済みのスライスで取得できるメソッドが用意されています
-
-	files := Store.Files()
-	for _, file := range files {
-		fmt.Fprintln(w, file)
-	}
 }
 
 // Store に保存されているファイル名と一致した行の内容、行番号を出力する関数
@@ -67,23 +61,6 @@ func RenderWithContent(w io.Writer) {
 	// ヒント：
 	// - ファイル名をソート済みのスライスで取得できるメソッドが用意されています
 	// - 結果をどのように保存しているかを他の実装から読み解きましょう
-
-	files := Store.Files()
-	for i, file := range files {
-		// ファイル名を出力
-		fmt.Fprintln(w, file)
-
-		// 一致した行を出力
-		lines := Store.Data[file]
-		for _, line := range lines {
-			fmt.Fprintf(w, "%d: %s\n", line.No, line.Text)
-		}
-
-		// 最後のファイル以外は空行を入れる
-		if i < len(files)-1 {
-			fmt.Fprintln(w)
-		}
-	}
 }
 
 // 保存されているファイル名を昇順でソートした上で []string として返す関数

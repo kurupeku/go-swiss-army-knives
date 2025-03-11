@@ -2,7 +2,6 @@ package client
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -44,49 +43,7 @@ func NewHttpClient(
 	// ヒント：
 	// - http パッケージには標準的な HTTP メソッドが定数として定義されています
 	// - switch 文を使用してメソッドごとの処理を分岐させることができます
-
-	// URLの構築
-	parsedURL, err := url.ParseRequestURI(rawurl)
-	if err != nil {
-		return nil, err
-	}
-
-	// リクエストヘッダの初期化
-	headers := make(map[string][]string)
-
-	// カスタムヘッダーの設定
-	for _, header := range customHeaders {
-		kv := strings.Split(strings.TrimSpace(header), ":")
-		key := strings.TrimSpace(kv[0])
-		value := strings.TrimSpace(kv[1])
-		headers[key] = append(headers[key], value)
-	}
-
-	var requestBody *string
-
-	// メソッドに応じた処理
-	switch method {
-	case http.MethodGet, http.MethodDelete:
-		// GET / DELETE の場合はボディなしでContent-Typeヘッダーを削除
-		delete(headers, "Content-Type")
-		requestBody = nil
-	case http.MethodPost, http.MethodPut, http.MethodPatch:
-		// POST / PUT / PATCH の場合は Content-Type ヘッダーとリクエストボディが必要
-		if data == "" {
-			return nil, errors.New("request body is required")
-		}
-		headers["Content-Type"] = []string{"application/json"}
-		requestBody = &data
-	default:
-		return nil, errors.New("unsupported HTTP method")
-	}
-
-	return &HttpClient{
-		url:           parsedURL,
-		method:        method,
-		requestBody:   requestBody,
-		requestHeader: headers,
-	}, nil
+	return nil, nil
 }
 
 func (c *HttpClient) Execute() (string, string, error) {
@@ -105,22 +62,7 @@ func (c *HttpClient) Execute() (string, string, error) {
 	// ヒント：
 	// - http.Response.Body は io.ReadCloser インターフェースを実装しています
 	// - レスポンスボディの Close 漏れは重大なリソースリークの原因となります
-
-	// リクエストの生成
-	req, err := c.BuildRequest()
-	if err != nil {
-		return "", "", err
-	}
-
-	// http.DefaultClient を使ってリクエストを送信
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", "", err
-	}
-	// http.Response.Body は defer で必ず Close する
-	defer res.Body.Close()
-
-	return CreateRequestText(req), CreateResponseText(res), nil
+	return "", "", nil
 }
 
 func (c *HttpClient) BuildRequest() (*http.Request, error) {
@@ -167,30 +109,7 @@ func CreateRequestText(req *http.Request) string {
 	//
 	// ヒント：
 	// - 文字列の操作には strings パッケージなどを利用すると便利です
-
-	var b strings.Builder
-
-	// 最初に空行
-	b.WriteString("\n===Request===\n")
-
-	// URLを表示
-	b.WriteString(fmt.Sprintf("[URL] %s\n", req.URL.String()))
-
-	// メソッドを表示
-	b.WriteString(fmt.Sprintf("[Method] %s\n", req.Method))
-
-	// ヘッダーを表示
-	b.WriteString("[Headers]\n")
-
-	// ヘッダーキーを昇順でソート
-	keys := sortedKeys(req.Header)
-
-	// ヘッダーを表示
-	for _, key := range keys {
-		b.WriteString(fmt.Sprintf("  %s: %s\n", key, strings.Join(req.Header[key], "; ")))
-	}
-
-	return b.String()
+	return ""
 }
 
 // レスポンスのステータスコード,レスポンスヘッダ,レスポンスボディを所定のフォーマットで返却
@@ -212,35 +131,7 @@ func CreateResponseText(res *http.Response) string {
 	//
 	// ヒント：
 	// - 文字列の操作には strings パッケージなどを利用すると便利です
-
-	var b strings.Builder
-
-	// 最初に空行とタイトル
-	b.WriteString("\n===Response===\n")
-
-	// ステータスコードを表示
-	b.WriteString(fmt.Sprintf("[Status] %d\n", res.StatusCode))
-
-	// ヘッダーを表示
-	b.WriteString("[Headers]\n")
-
-	// ヘッダーキーを昇順でソート
-	keys := sortedKeys(res.Header)
-
-	// ヘッダーを表示
-	for _, key := range keys {
-		b.WriteString(fmt.Sprintf("  %s: %s\n", key, strings.Join(res.Header[key], "; ")))
-	}
-
-	// ボディを表示
-	b.WriteString("[Body]\n")
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return ""
-	}
-	b.WriteString(string(body) + "\n")
-
-	return b.String()
+	return ""
 }
 
 // http.Request.Header と http.Response.Header を渡すと昇順にソートされた Key を返す関数

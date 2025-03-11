@@ -88,21 +88,6 @@ func Listen(ctx context.Context, ln chan []byte, errc chan error) {
 	// ヒント：
 	// - Buffer 構造体のメソッドはスレッドセーフな操作を提供します
 	// - チャネルがクロースされたかどうかを検知する方法を調べてみましょう
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case line, ok := <-ln:
-			if !ok {
-				return
-			}
-			if _, err := buf.Write(line); err != nil {
-				errc <- err
-				return
-			}
-		}
-	}
 }
 
 // グローバル変数 buf から一定間隔（spanで指定される）でデータを読み込み、空行や空白文字のみの行をスキップして out へ送信する関数
@@ -128,26 +113,4 @@ func Load(ctx context.Context, out chan []byte, errc chan error, span time.Durat
 	// ヒント：
 	// - time パッケージに一定間隔で処理を行うための機能があります
 	// - bytes パッケージには文字列の検証に便利な関数があります
-
-	defer close(out)
-
-	ticker := time.NewTicker(span)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			if buf.Len() == 0 {
-				continue
-			}
-
-			content := buf.Read()
-			// 空行や空白文字のみの場合はスキップ
-			if len(bytes.TrimSpace(content)) > 0 {
-				out <- content
-			}
-		}
-	}
 }

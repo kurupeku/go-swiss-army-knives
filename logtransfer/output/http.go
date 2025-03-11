@@ -1,11 +1,7 @@
 package output
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-	"io"
-	"net/http"
 )
 
 const (
@@ -37,43 +33,4 @@ func Forward(ctx context.Context, out chan []byte, errc chan error, url string) 
 	// ヒント：
 	// - http パッケージに context を渡すことのできる関数があります
 	// - []byte を io.Reader に変換する便利なメソッドが bytes パッケージなどに存在します
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case data, ok := <-out:
-			if !ok {
-				return
-			}
-
-			req, err := http.NewRequestWithContext(
-				ctx,
-				http.MethodPost,
-				url,
-				bytes.NewReader(data),
-			)
-			if err != nil {
-				errc <- err
-				continue
-			}
-			req.Header.Set("Content-Type", contentType)
-
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				errc <- err
-				continue
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode >= 400 {
-				body, err := io.ReadAll(resp.Body)
-				if err != nil {
-					errc <- fmt.Errorf("HTTP request failed with status: %s", resp.Status)
-					continue
-				}
-				errc <- fmt.Errorf("HTTP request failed with status: %s, body: %s", resp.Status, string(body))
-			}
-		}
-	}
 }
