@@ -1,11 +1,11 @@
 module murl
 
-go 1.19
+go 1.24.0
 
 require (
 	github.com/jarcoal/httpmock v1.2.0
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
